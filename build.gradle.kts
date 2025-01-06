@@ -1,5 +1,5 @@
 val fabricKotlinVersion: String by project
-val javaVersion = JavaVersion.VERSION_17
+val javaVersion = JavaVersion.VERSION_21
 val loaderVersion: String by project
 val minecraftVersion: String by project
 val modVersion: String by project
@@ -73,10 +73,7 @@ tasks {
                     "modId" to modId,
                     "modName" to modName,
                     "modVersion" to modVersion,
-                    "modDescription" to modDescription,
-                    "loaderVersion" to loaderVersion,
                     "minecraftVersion" to minecraftVersion,
-                    "fabricKotlinVersion" to fabricKotlinVersion,
                     "javaVersion" to javaVersion.toString()
                 )
             )
