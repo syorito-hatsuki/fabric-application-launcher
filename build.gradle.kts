@@ -16,6 +16,10 @@ base {
     archivesName.set("$modId-$modVersion-$minecraftVersion")
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/${modId}.accesswidener")
+}
+
 repositories {
     maven("https://api.modrinth.com/maven") {
         content {
@@ -43,6 +47,13 @@ dependencies {
 
     val duckyUpdaterLibVersion: String by project
     include(modImplementation("maven.modrinth", "ducky-updater-lib", duckyUpdaterLibVersion))
+
+    include(implementation("org.apache.xmlgraphics", "batik-transcoder", "1.16") {
+        exclude("xml-apis", "xml-apis")
+    })
+    include(implementation("org.apache.xmlgraphics", "batik-codec", "1.16") {
+        exclude("xml-apis", "xml-apis")
+    })
 }
 
 tasks {
