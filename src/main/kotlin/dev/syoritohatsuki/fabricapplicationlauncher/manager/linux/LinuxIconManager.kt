@@ -23,6 +23,7 @@ import kotlin.math.abs
 
 object LinuxIconManager : IconManager {
     private val loadedIcons: MutableMap<String, Identifier> = mutableMapOf()
+    private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
 
     private val ICON_DIRECTORIES: Array<String> = arrayOf(
         "/usr/share/icons/", "$HOME/.local/share/icons/", "$HOME/.icons/"
@@ -93,10 +94,17 @@ object LinuxIconManager : IconManager {
     override fun getIconIdentifier(icon: String): Identifier = loadedIcons[icon] ?: loadIcon(icon)
 
     private fun loadIcon(icon: String): Identifier {
-        val path = getIconPath(icon)
         val id = Identifier.of(FabricApplicationLauncherClientMod.MOD_ID, icon.lowercase())
 
         loadedIcons[icon] = id
+
+        MinecraftClient.getInstance().textureManager.registerTexture(id, loadedNativeImageBackedTexture[icon])
+
+        return id
+    }
+
+    fun getNative(icon: String): NativeImageBackedTexture? {
+        val path = getIconPath(icon)
 
         if (icon.isNotBlank() && Files.isRegularFile(
                 path, *arrayOfNulls<LinkOption>(0)
@@ -104,21 +112,21 @@ object LinuxIconManager : IconManager {
         ) {
             Files.newInputStream(path).use { inputStream ->
                 try {
-                    val image: NativeImage? = if (path.toString().endsWith(".svg")) {
-                        FabricApplicationLauncherClientMod.logger.error("Icon is SVG")
-                        NativeImage.read(svgToPngInputStream(inputStream))
-                    } else {
-                        FabricApplicationLauncherClientMod.logger.error("Icon is not SVG")
-                        NativeImage.read(inputStream)
-                    }
-                    FabricApplicationLauncherClientMod.logger.error("${icon}: [${image?.width}x${image?.height}]")
-                    MinecraftClient.getInstance().textureManager.registerTexture(id, NativeImageBackedTexture(image))
-                    return id
+                    loadedNativeImageBackedTexture[icon] = NativeImageBackedTexture(
+                        if (path.toString().endsWith(".svg")) {
+                            FabricApplicationLauncherClientMod.logger.error("Icon is SVG")
+                            NativeImage.read(svgToPngInputStream(inputStream))
+                        } else {
+                            FabricApplicationLauncherClientMod.logger.error("Icon is not SVG")
+                            NativeImage.read(inputStream)
+                        }.also {
+                            FabricApplicationLauncherClientMod.logger.error("${icon}: [${it.width}x${it.height}]")
+                        })
                 } catch (e: Exception) {
                     FabricApplicationLauncherClientMod.logger.error(e.message + ": $path")
                 }
             }
         }
-        return id
+        return null
     }
 }

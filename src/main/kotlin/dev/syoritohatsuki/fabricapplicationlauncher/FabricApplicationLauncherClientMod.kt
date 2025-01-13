@@ -3,6 +3,10 @@ package dev.syoritohatsuki.fabricapplicationlauncher
 import com.mojang.logging.LogUtils
 import dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame.ApplicationListScreen
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxApplicationManager
+import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
@@ -11,7 +15,6 @@ import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import org.lwjgl.glfw.GLFW
 import org.slf4j.Logger
-
 
 object FabricApplicationLauncherClientMod : ClientModInitializer {
 
@@ -30,7 +33,14 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
     override fun onInitializeClient() {
         logger.info("${javaClass.simpleName} initialized with mod-id $MOD_ID")
 
-        LinuxApplicationManager.fetchApps()
+        CoroutineScope(Dispatchers.IO).launch {
+            LinuxApplicationManager.fetchApps()
+            LinuxApplicationManager.getApps().forEach {
+                CoroutineScope(Dispatchers.IO).launch {
+                    LinuxIconManager.getNative(it.icon)
+                }
+            }
+        }
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
             if (openApplicationListKeyBinding.wasPressed()) client.setScreen(ApplicationListScreen())
