@@ -19,7 +19,6 @@ import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
-import kotlin.math.abs
 
 object LinuxIconManager : IconManager {
     private val loadedIcons: MutableMap<String, Identifier> = mutableMapOf()
@@ -73,7 +72,8 @@ object LinuxIconManager : IconManager {
     }
 
     private fun findClosestSize(sizeToPathMap: Map<Int, Path>): Path? =
-        sizeToPathMap.entries.minByOrNull { abs(it.key - PREFERRED_ICON_SIZE) }?.value
+        sizeToPathMap.filterKeys { it >= PREFERRED_ICON_SIZE }.takeIf { it.isNotEmpty() }?.minByOrNull { it.key }?.value
+            ?: sizeToPathMap.filterKeys { it < PREFERRED_ICON_SIZE }.maxByOrNull { it.key }?.value
 
     private fun svgToPngInputStream(inputStream: InputStream): InputStream {
 
