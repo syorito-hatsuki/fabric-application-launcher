@@ -114,13 +114,9 @@ object LinuxIconManager : IconManager {
                 try {
                     loadedNativeImageBackedTexture[icon] = NativeImageBackedTexture(
                         if (path.toString().endsWith(".svg")) {
-                            FabricApplicationLauncherClientMod.logger.error("Icon is SVG")
                             NativeImage.read(svgToPngInputStream(inputStream))
                         } else {
-                            FabricApplicationLauncherClientMod.logger.error("Icon is not SVG")
                             NativeImage.read(inputStream)
-                        }.also {
-                            FabricApplicationLauncherClientMod.logger.error("${icon}: [${it.width}x${it.height}]")
                         })
                 } catch (e: Exception) {
                     FabricApplicationLauncherClientMod.logger.error(e.message + ": $path")
