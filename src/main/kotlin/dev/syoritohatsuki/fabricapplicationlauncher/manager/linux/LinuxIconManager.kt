@@ -18,7 +18,7 @@ import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
+import kotlin.io.path.listDirectoryEntries
 
 object LinuxIconManager : IconManager {
     private val loadedIcons: MutableMap<String, Identifier> = mutableMapOf()
@@ -33,50 +33,56 @@ object LinuxIconManager : IconManager {
 
     private const val PREFERRED_ICON_SIZE: Int = 64
 
+    private val ICON_EXTENSIONS = listOf(".png", ".jpg", ".jpeg", ".svg")
+
     override fun getIconPath(icon: String): Path {
         ICON_DIRECTORIES.forEach { baseDir ->
-            val themeDir = Paths.get(baseDir)
-            if (Files.exists(themeDir) && Files.isDirectory(themeDir)) {
-                val iconPath: String? = searchInTheme(themeDir, icon)
+            if (Files.exists(baseDir) && Files.isDirectory(baseDir)) {
+                val iconPath = searchInTheme(baseDir, icon)
                 if (iconPath != null) {
-                    return Path.of(iconPath)
+                    if (icon.contains("yaak")) {
+                        FabricApplicationLauncherClientMod.logger.error("1 Path not null $iconPath")
+                    }
+                    return iconPath
                 }
             }
         }
-
-        return Path.of("TODO Fallback icon")
+        return Paths.get("/usr/share/icons/default-icon.png")
     }
 
-    private fun searchInTheme(themeDir: Path, iconName: String): String? {
-        try {
-            val sizeToPathMap: MutableMap<Int, Path> = TreeMap()
+    private fun searchInTheme(themeDir: Path, iconName: String): Path? {
+        val sizeToPathMap: MutableSet<Pair<Int, Path>> = mutableSetOf()
 
-            Files.walk(themeDir).filter { path: Path -> Files.isDirectory(path) }
-                .filter { path: Path -> path.fileName.toString().matches("\\d+x\\d+".toRegex()) }
-                .forEach { path: Path ->
-                    try {
-                        sizeToPathMap[path.fileName.toString().split("x".toRegex()).dropLastWhile { it.isEmpty() }
-                            .toTypedArray()[0].toInt()] = path
-                    } catch (ignored: NumberFormatException) {
+        try {
+            Files.walk(themeDir, 2).use { paths ->
+                paths.forEach { path ->
+                    if (Files.isDirectory(path)) {
+                        val dirName = path.fileName.toString()
+                        when {
+                            dirName == "scalable" -> sizeToPathMap.add(Pair(Int.MAX_VALUE, path))
+                            dirName.matches("\\d+x\\d+".toRegex()) -> {
+                                val size = dirName.split("x")[0].toIntOrNull()
+                                if (size != null) {
+                                    sizeToPathMap.add(Pair(size, path))
+                                }
+                            }
+                        }
                     }
                 }
+            }
 
-            arrayOf(".jpg", ".jpeg", ".png", ".svg").forEach { ext ->
-                val iconFile = (findClosestSize(sizeToPathMap) ?: return null).resolve("apps")
-                    .resolve(iconName + ext)
-                if (Files.exists(iconFile)) {
-                    return iconFile.toString()
+            ICON_EXTENSIONS.forEach { ext ->
+                sizeToPathMap.forEach { (_, closestSizePath) ->
+                    closestSizePath.listDirectoryEntries().map { closestSizePath.resolve(it).resolve(iconName + ext) }
+                        .firstOrNull { Files.exists(it) }?.let { return it }
                 }
             }
         } catch (e: IOException) {
             e.printStackTrace()
         }
+
         return null
     }
-
-    private fun findClosestSize(sizeToPathMap: Map<Int, Path>): Path? =
-        sizeToPathMap.filterKeys { it >= PREFERRED_ICON_SIZE }.takeIf { it.isNotEmpty() }?.minByOrNull { it.key }?.value
-            ?: sizeToPathMap.filterKeys { it < PREFERRED_ICON_SIZE }.maxByOrNull { it.key }?.value
 
     private fun svgToPngInputStream(inputStream: InputStream): InputStream {
 
@@ -120,7 +126,8 @@ object LinuxIconManager : IconManager {
                             NativeImage.read(svgToPngInputStream(inputStream))
                         } else {
                             NativeImage.read(inputStream)
-                        })
+                        }
+                    )
                 } catch (e: Exception) {
                     FabricApplicationLauncherClientMod.logger.error(e.message + ": $path")
                 }
