@@ -1,5 +1,6 @@
 package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 
+import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
 import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.ApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
@@ -9,6 +10,7 @@ import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.text.Text
 import net.minecraft.util.Colors
+import net.minecraft.util.Util
 
 class ApplicationListWidget(
     client: MinecraftClient,
@@ -18,7 +20,8 @@ class ApplicationListWidget(
     height: Int,
     y: Int,
     itemHeight: Int,
-    search: String
+    search: String,
+    val screen: ApplicationListScreen
 ) : AlwaysSelectedEntryListWidget<ApplicationListWidget.ApplicationEntry>(client, width, height, y, itemHeight) {
 
     init {
@@ -33,12 +36,14 @@ class ApplicationListWidget(
         super.clearEntries()
     }
 
-    class ApplicationEntry(
+    inner class ApplicationEntry(
         private val client: MinecraftClient,
         private val iconManager: IconManager,
         private val application: Application
     ) :
         Entry<ApplicationEntry>(), AutoCloseable {
+
+        private var clickTime: Long = 0
 
         override fun render(
             context: DrawContext,
@@ -82,5 +87,22 @@ class ApplicationListWidget(
         override fun close() {
         }
 
+        override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+            this.onPressed()
+            if (Util.getMeasuringTimeMs() - this.clickTime < 250L) {
+                // Close window after double click
+            }
+
+            FabricApplicationLauncherClientMod.logger.warn("-----[ ${application.icon} ]-----")
+            FabricApplicationLauncherClientMod.logger.warn(iconManager.getIconPath(application.icon).toString())
+            FabricApplicationLauncherClientMod.logger.warn("---------------------------------")
+
+            this.clickTime = Util.getMeasuringTimeMs()
+            return super.mouseClicked(mouseX, mouseY, button)
+        }
+
+        private fun onPressed() {
+            this@ApplicationListWidget.setSelected(this)
+        }
     }
 }

@@ -17,7 +17,8 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
                 height / 2,
                 48,
                 36,
-                ""
+                "",
+                this
             )
         )
     }
