@@ -24,8 +24,11 @@ object LinuxIconManager : IconManager {
     private val loadedIcons: MutableMap<String, Identifier> = mutableMapOf()
     private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
 
-    private val ICON_DIRECTORIES: Array<String> = arrayOf(
-        "/usr/share/icons/", "$HOME/.local/share/icons/", "$HOME/.icons/"
+    private val ICON_DIRECTORIES: Array<Path> = arrayOf(
+        Paths.get("/", "usr", "share", "icons"),
+        Paths.get("/", "usr", "share", "pixmaps"),
+        Paths.get(HOME, ".local", "share", "icons"),
+        Paths.get(HOME, ".icons")
     )
 
     private const val PREFERRED_ICON_SIZE: Int = 64
