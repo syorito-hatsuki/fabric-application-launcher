@@ -58,4 +58,6 @@ object LinuxApplicationManager : ApplicationManager {
     }
 
     override fun getApps(): List<Application> = apps.values.toList()
+
+    override fun getAppsCount(): Int = apps.count()
 }

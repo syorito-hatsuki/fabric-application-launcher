@@ -1,6 +1,5 @@
 package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 
-import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
 import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.ApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
@@ -21,7 +20,6 @@ class ApplicationListWidget(
     y: Int,
     itemHeight: Int,
     search: String,
-    val screen: ApplicationListScreen
 ) : AlwaysSelectedEntryListWidget<ApplicationListWidget.ApplicationEntry>(client, width, height, y, itemHeight) {
 
     init {
@@ -57,29 +55,33 @@ class ApplicationListWidget(
             hovered: Boolean,
             tickDelta: Float
         ) {
-            val icon = iconManager.getIconIdentifier(application.icon)
-
             context.drawTextWithShadow(client.textRenderer, application.name, x + 32 + 3, y + 1, Colors.WHITE)
             context.drawTextWithShadow(
-                client.textRenderer, application.description, x + 32 + 3, y + 9 + 3, Colors.LIGHT_GRAY
+                client.textRenderer,
+                application.description,
+                x + 32 + 3,
+                y + 9 + 3,
+                Colors.LIGHT_GRAY
             )
             context.drawTextWithShadow(
-                client.textRenderer, application.executable, x + 32 + 3, y + 9 + 9 + 3, Colors.GRAY
+                client.textRenderer,
+                application.executable,
+                x + 32 + 3,
+                y + 9 + 9 + 3,
+                Colors.GRAY
             )
-            icon.let {
-                context.drawTexture(
-                    RenderLayer::getGuiTextured,
-                    it,
-                    x,
-                    y,
-                    0.0f,
-                    0.0f,
-                    32,
-                    32,
-                    32,
-                    32
-                )
-            }
+            context.drawTexture(
+                RenderLayer::getGuiTextured,
+                iconManager.getIconIdentifier(application.icon),
+                x,
+                y,
+                0.0f,
+                0.0f,
+                32,
+                32,
+                32,
+                32
+            )
         }
 
         override fun getNarration(): Text = Text.empty()
@@ -89,13 +91,10 @@ class ApplicationListWidget(
 
         override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
             this.onPressed()
+
             if (Util.getMeasuringTimeMs() - this.clickTime < 250L) {
                 // Close window after double click
             }
-
-            FabricApplicationLauncherClientMod.logger.warn("-----[ ${application.icon} ]-----")
-            FabricApplicationLauncherClientMod.logger.warn(iconManager.getIconPath(application.icon).toString())
-            FabricApplicationLauncherClientMod.logger.warn("---------------------------------")
 
             this.clickTime = Util.getMeasuringTimeMs()
             return super.mouseClicked(mouseX, mouseY, button)

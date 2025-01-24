@@ -21,7 +21,7 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
     const val MOD_ID = "fabric-application-launcher"
     val logger: Logger = LogUtils.getLogger()
 
-    private val openApplicationListKeyBinding: KeyBinding = KeyBindingHelper.registerKeyBinding(
+    val openApplicationListKeyBinding: KeyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
             "key.open.applications",
             InputUtil.Type.KEYSYM,
