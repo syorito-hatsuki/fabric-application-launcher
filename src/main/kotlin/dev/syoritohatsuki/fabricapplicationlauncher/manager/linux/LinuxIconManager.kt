@@ -71,7 +71,7 @@ object LinuxIconManager : IconManager {
             if (currentHeight == null || currentHeight < 64) svgRoot.setAttribute("height", "64")
 
             if (svgRoot.getAttribute("viewBox").isNullOrBlank()) {
-                svgRoot.setAttribute("viewBox", "0 0 ${currentWidth ?: 16} ${currentHeight ?: 16}")
+                svgRoot.setAttribute("viewBox", "0 0 ${currentWidth ?: 64} ${currentHeight ?: 64}")
             }
 
             val outputStream = ByteArrayOutputStream()
@@ -102,10 +102,12 @@ object LinuxIconManager : IconManager {
             Files.newInputStream(path).use { inputStream ->
                 try {
                     loadedNativeImageBackedTexture[icon] = NativeImageBackedTexture(
-                        when {
-                            path.toString().endsWith(".svg") -> NativeImage.read(svgToPngInputStream(inputStream))
-                            else -> NativeImage.read(inputStream)
-                        }
+                        NativeImage.read(
+                            when {
+                                path.toString().endsWith(".svg") -> svgToPngInputStream(inputStream)
+                                else -> inputStream
+                            }
+                        )
                     )
                 } catch (e: Exception) {
                     FabricApplicationLauncherClientMod.logger.error(e.message + ": $path")
@@ -149,7 +151,7 @@ object LinuxIconManager : IconManager {
                     return files.filter {
                         Files.isRegularFile(it)
                     }.filter {
-                        isMatchingIcon(it, iconName)
+                        it.fileName.toString().startsWith("$iconName.") && FORMATS.any(it.fileName.toString()::endsWith)
                     }.findFirst().orElse(null) ?: return@forEach
                 }
             } catch (e: IOException) {
@@ -157,11 +159,6 @@ object LinuxIconManager : IconManager {
             }
         }
         return null
-    }
-
-    private fun isMatchingIcon(filePath: Path, iconName: String): Boolean {
-        val fileName = filePath.fileName.toString()
-        return fileName.startsWith("$iconName.") && FORMATS.any(fileName::endsWith)
     }
 
     override fun getIconIdentifier(icon: String): Identifier = loadedIcons[icon] ?: loadIcon(icon)
