@@ -30,8 +30,20 @@ object LinuxIconManager : IconManager {
     private val loadedIcons: MutableMap<String, Identifier> = mutableMapOf()
     private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
 
-    private val RESOLUTIONS = arrayOf("64x64", "scalable", "128x128", "256x256", "32x32", "16x16", "")
-    private val FORMATS = arrayOf(".png", ".jpg", ".jpeg", ".svg")
+    private val RESOLUTIONS = Runtime.getRuntime().exec(
+        arrayOf(
+            "bash",
+            "-c",
+            "find /usr/share/icons/ -type d -regextype posix-extended -regex '.*/[0-9]+x[0-9]+$' | awk -F/ '{print \$NF}' | sort -u"
+        )
+    ).inputStream.bufferedReader().readLines().filter { it.matches(Regex("\\d+x\\d+")) }
+        .map { it to it.split("x")[1].toInt() }.sortedByDescending { it.second }.map { it.first }.toMutableList()
+        .apply {
+            add("scalable")
+            add("")
+        }
+
+    private val FORMATS = arrayOf(".png", ".svg", ".xpm")
 
     private val ICON_DIRECTORIES: Array<Path> = arrayOf(
         *XDG_DATA_DIRS.split(":").map(Paths::get).toTypedArray(), Paths.get(HOME, ".local", "share")
