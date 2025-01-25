@@ -3,6 +3,7 @@ package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.ApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManager
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget
@@ -27,11 +28,6 @@ class ApplicationListWidget(
         applicationManager.getApps().sortedBy { it.name }.forEach { app ->
             addEntry(ApplicationEntry(client, iconManager, app))
         }
-    }
-
-    override fun clearEntries() {
-        children().forEach(ApplicationEntry::close)
-        super.clearEntries()
     }
 
     inner class ApplicationEntry(
@@ -87,13 +83,19 @@ class ApplicationListWidget(
         override fun getNarration(): Text = Text.empty()
 
         override fun close() {
+            client.setScreen(null)
         }
 
         override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
             this.onPressed()
 
             if (Util.getMeasuringTimeMs() - this.clickTime < 250L) {
-                // Close window after double click
+                client.player?.sendMessage(
+                    Text.literal((iconManager as LinuxIconManager).iconPaths[application.icon]),
+                    true
+                )
+                client.textRenderer
+
             }
 
             this.clickTime = Util.getMeasuringTimeMs()

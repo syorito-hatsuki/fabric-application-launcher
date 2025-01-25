@@ -37,7 +37,7 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
             LinuxApplicationManager.fetchApps()
             LinuxApplicationManager.getApps().forEach {
                 CoroutineScope(Dispatchers.IO).launch {
-                    LinuxIconManager.getNative(it.icon)
+                    LinuxIconManager.preload(it.icon)
                 }
             }
         }

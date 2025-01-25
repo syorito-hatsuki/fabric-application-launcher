@@ -15,42 +15,41 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
         const val TEXT_SIZE = 12
     }
 
+    private var debugMode = false
+
     override fun init() {
-        if (client != null) {
-            // Basic debug
-            addDrawableChild(
-                TextWidget(
-                    Text.literal("Apps count: ${LinuxApplicationManager.getApps().count()}"),
-                    textRenderer
-                ).apply { setPosition(PADDING, PADDING) })
-            addDrawableChild(
-                TextWidget(
-                    Text.literal("Loaded icons: ${LinuxIconManager.getLoadedIconsCount()}"),
-                    textRenderer
-                ).apply { setPosition(PADDING, TEXT_SIZE + PADDING) })
-            addDrawableChild(
-                TextWidget(
-                    Text.literal("Rendered icons: ${LinuxIconManager.getIconsCount()}"),
-                    textRenderer
-                ).apply { setPosition(PADDING, TEXT_SIZE * 2 + PADDING) })
-
-            //Selected debug
-            // TODO Selected debug
-
-            // Actual view
-            addDrawableChild(
-                ApplicationListWidget(
-                    client!!,
-                    LinuxApplicationManager,
-                    LinuxIconManager,
-                    width / 2,
-                    height / 2,
-                    48,
-                    36,
-                    ""
-                )
+        addDrawableChild(
+            ApplicationListWidget(
+                client = client ?: return,
+                applicationManager = LinuxApplicationManager,
+                iconManager = LinuxIconManager,
+                width = width / 2,
+                height = height / 2,
+                y = 48,
+                itemHeight = 36,
+                search = ""
             )
+        )
+    }
+
+    override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
+        if (debugMode) {
+            TextWidget(
+                Text.literal("Apps count: ${LinuxApplicationManager.getApps().count()}"), textRenderer
+            ).apply {
+                setPosition(PADDING, PADDING)
+                renderWidget(context, mouseX, mouseY, delta)
+            }
+
+            TextWidget(
+                Text.literal("Unique icons: ${LinuxIconManager.getUniqueIconsCount()}"), textRenderer
+            ).apply {
+                setPosition(PADDING, TEXT_SIZE + PADDING)
+                renderWidget(context, mouseX, mouseY, delta)
+            }
         }
+
+        super.render(context, mouseX, mouseY, delta)
     }
 
     override fun shouldPause(): Boolean = false

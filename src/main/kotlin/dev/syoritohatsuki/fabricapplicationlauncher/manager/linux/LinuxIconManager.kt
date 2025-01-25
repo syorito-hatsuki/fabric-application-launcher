@@ -29,6 +29,7 @@ import javax.imageio.ImageIO
 object LinuxIconManager : IconManager {
     private val loadedIcons: MutableMap<String, Identifier> = mutableMapOf()
     private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
+    val iconPaths: MutableMap<String, String> = mutableMapOf()
 
     private val RESOLUTIONS = Runtime.getRuntime().exec(
         arrayOf(
@@ -36,10 +37,10 @@ object LinuxIconManager : IconManager {
             "-c",
             "find /usr/share/icons/ -type d -regextype posix-extended -regex '.*/[0-9]+x[0-9]+$' | awk -F/ '{print \$NF}' | sort -u"
         )
-    ).inputStream.bufferedReader().readLines().filter { it.matches(Regex("\\d+x\\d+")) }
+    ).inputStream.bufferedReader().readLines().asSequence().filter { it.matches(Regex("\\d+x\\d+")) }
         .map { it to it.split("x")[1].toInt() }.sortedByDescending { it.second }.map { it.first }.toMutableList()
         .apply {
-            add("scalable")
+            addFirst("scalable")
             add("")
         }
 
@@ -85,14 +86,13 @@ object LinuxIconManager : IconManager {
         }
     }
 
-    private fun loadIcon(icon: String): Identifier {
-        val id = Identifier.of(FabricApplicationLauncherClientMod.MOD_ID, icon.lowercase())
-        loadedIcons[icon] = id
-        MinecraftClient.getInstance().textureManager.registerTexture(id, loadedNativeImageBackedTexture[icon])
-        return id
-    }
+    private fun loadIcon(icon: String): Identifier =
+        Identifier.of(FabricApplicationLauncherClientMod.MOD_ID, icon.lowercase()).apply {
+            loadedIcons[icon] = this
+            MinecraftClient.getInstance().textureManager.registerTexture(this, loadedNativeImageBackedTexture[icon])
+        }
 
-    fun getNative(icon: String) {
+    fun preload(icon: String) {
         val path = getIconPath(icon) ?: run {
             loadedNativeImageBackedTexture[icon] = NativeImageBackedTexture(NativeImage.read(createEmptyPng()))
             return
@@ -109,6 +109,7 @@ object LinuxIconManager : IconManager {
                             }
                         )
                     )
+                    iconPaths[icon] = path.toString()
                 } catch (e: Exception) {
                     FabricApplicationLauncherClientMod.logger.error(e.message + ": $path")
                 }
@@ -116,29 +117,20 @@ object LinuxIconManager : IconManager {
         }
     }
 
-    override fun getIconPath(icon: String): Path? {
-        var themeName = "Papirus"
-        themeName = Objects.requireNonNullElse(themeName, "hicolor")
-
+    private fun getIconPath(icon: String, theme: String = ""): Path? {
         ICON_DIRECTORIES.forEach { basePath ->
-            val iconPath = searchIcon(basePath.resolve("icons").resolve(themeName), icon)
-            if (iconPath != null) return iconPath
+            return searchIcon(basePath.resolve("icons").resolve(theme), icon) ?: return@forEach
         }
 
-        val hicolorPath = ICON_DIRECTORIES.map { it.resolve("icons/hicolor") }.map { searchIcon(it, icon) }
-            .firstOrNull(Objects::nonNull)
+        return ICON_DIRECTORIES.map { it.resolve("icons/hicolor") }.map { searchIcon(it, icon) }
+            .firstOrNull(Objects::nonNull) ?: searchIcon(Paths.get("/", "usr", "share", "pixmaps"), icon) ?: run {
 
-        if (hicolorPath != null) return hicolorPath
+            ICON_DIRECTORIES.forEach { basePath ->
+                return searchIcon(basePath.resolve("icons"), icon)
+            }
 
-        val pixmapsPath = searchIcon(Paths.get("/", "usr", "share", "pixmaps"), icon)
-        if (pixmapsPath != null) return pixmapsPath
-
-        ICON_DIRECTORIES.forEach { basePath ->
-            val fallbackPath = searchIcon(basePath.resolve("icons"), icon)
-            if (fallbackPath != null) return fallbackPath
+            return null
         }
-
-        return null
     }
 
     private fun searchIcon(themePath: Path, iconName: String): Path? {
@@ -148,9 +140,7 @@ object LinuxIconManager : IconManager {
 
             try {
                 Files.walk(resolutionPath).use { files ->
-                    return files.filter {
-                        Files.isRegularFile(it)
-                    }.filter {
+                    return files.filter(Files::isRegularFile).filter {
                         it.fileName.toString().startsWith("$iconName.") && FORMATS.any(it.fileName.toString()::endsWith)
                     }.findFirst().orElse(null) ?: return@forEach
                 }
@@ -163,9 +153,7 @@ object LinuxIconManager : IconManager {
 
     override fun getIconIdentifier(icon: String): Identifier = loadedIcons[icon] ?: loadIcon(icon)
 
-    override fun getIconsCount() = loadedIcons.size
-
-    override fun getLoadedIconsCount(): Int = loadedNativeImageBackedTexture.count {
+    override fun getUniqueIconsCount(): Int = loadedNativeImageBackedTexture.count {
         (it.value.image?.width ?: 0) > 1 && (it.value.image?.height ?: 0) > 1
     }
 }
