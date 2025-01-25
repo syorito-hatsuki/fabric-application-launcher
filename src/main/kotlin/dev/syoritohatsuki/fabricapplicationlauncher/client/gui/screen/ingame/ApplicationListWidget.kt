@@ -33,7 +33,7 @@ class ApplicationListWidget(
     inner class ApplicationEntry(
         private val client: MinecraftClient,
         private val iconManager: IconManager,
-        private val application: Application
+        val application: Application
     ) :
         Entry<ApplicationEntry>(), AutoCloseable {
 

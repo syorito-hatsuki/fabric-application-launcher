@@ -5,51 +5,73 @@ import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxApplicati
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManager
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.widget.TextWidget
 import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 
 class ApplicationListScreen : Screen(Text.literal("Applications")) {
 
     companion object {
         const val PADDING = 4
-        const val TEXT_SIZE = 12
     }
 
     private var debugMode = false
+    private lateinit var applicationListWidget: ApplicationListWidget
 
     override fun init() {
-        addDrawableChild(
-            ApplicationListWidget(
-                client = client ?: return,
-                applicationManager = LinuxApplicationManager,
-                iconManager = LinuxIconManager,
-                width = width / 2,
-                height = height / 2,
-                y = 48,
-                itemHeight = 36,
-                search = ""
-            )
+        applicationListWidget = ApplicationListWidget(
+            client = client ?: return,
+            applicationManager = LinuxApplicationManager,
+            iconManager = LinuxIconManager,
+            width = width / 2,
+            height = height / 2,
+            y = 48,
+            itemHeight = 36,
+            search = ""
         )
+        addDrawableChild(applicationListWidget)
     }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-        if (debugMode) {
-            TextWidget(
-                Text.literal("Apps count: ${LinuxApplicationManager.getApps().count()}"), textRenderer
-            ).apply {
-                setPosition(PADDING, PADDING)
-                renderWidget(context, mouseX, mouseY, delta)
-            }
-
-            TextWidget(
-                Text.literal("Unique icons: ${LinuxIconManager.getUniqueIconsCount()}"), textRenderer
-            ).apply {
-                setPosition(PADDING, TEXT_SIZE + PADDING)
-                renderWidget(context, mouseX, mouseY, delta)
-            }
-        }
-
         super.render(context, mouseX, mouseY, delta)
+        if (debugMode) {
+            context.drawTooltip(
+                textRenderer, listOf(
+                    Text.literal("Apps count: ${LinuxApplicationManager.getApps().count()}"),
+                    Text.literal("Unique icons: ${LinuxIconManager.getUniqueIconsCount()}")
+                ), -PADDING, PADDING - 1 + textRenderer.fontHeight * 2
+            )
+
+            val app = (applicationListWidget.selectedOrNull ?: return).application
+            context.drawTooltip(
+                textRenderer, mutableListOf<Text>().apply {
+                    if (app.name.isNotBlank()) add(
+                        Text.literal("Name: ").formatted(Formatting.GREEN)
+                            .append(Text.literal(app.name).formatted(Formatting.YELLOW))
+                    )
+                    if (app.description.isNotBlank()) add(
+                        Text.literal("Description: ").formatted(Formatting.GREEN)
+                            .append(Text.literal(app.description).formatted(Formatting.YELLOW))
+                    )
+                    if (app.categories.isNotEmpty()) add(
+                        Text.literal("Categories: ").formatted(Formatting.GREEN)
+                            .append(Text.literal(app.categories.toString()).formatted(Formatting.YELLOW))
+                    )
+                    if (app.path.isNotBlank()) add(
+                        Text.literal("Path: ").formatted(Formatting.GREEN)
+                            .append(Text.literal(app.path).formatted(Formatting.YELLOW))
+                    )
+                    if (app.executable.isNotBlank()) add(
+                        Text.literal("Exec: ").formatted(Formatting.GREEN)
+                            .append(Text.literal(app.executable).formatted(Formatting.YELLOW))
+                    )
+                    if (app.icon.isNotBlank()) add(
+                        Text.literal("Icon path: ").formatted(Formatting.GREEN).append(
+                            Text.literal(LinuxIconManager.iconPaths[app.icon]).formatted(Formatting.YELLOW)
+                        )
+                    )
+                }, -PADDING, textRenderer.fontHeight * 6
+            )
+        }
     }
 
     override fun shouldPause(): Boolean = false
@@ -59,6 +81,10 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (FabricApplicationLauncherClientMod.openApplicationListKeyBinding.matchesKey(keyCode, -1)) {
             close()
+            return true
+        }
+        if (FabricApplicationLauncherClientMod.enableDebugApplicationListKeyBinding.matchesKey(keyCode, -1)) {
+            debugMode = !debugMode
             return true
         }
         return super.keyPressed(keyCode, scanCode, modifiers)
