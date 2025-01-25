@@ -30,6 +30,15 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
         )
     )
 
+    val enableDebugApplicationListKeyBinding: KeyBinding = KeyBindingHelper.registerKeyBinding(
+        KeyBinding(
+            "key.open.applications.debug",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_N,
+            "category.fabricapplicationlauncher"
+        )
+    )
+
     override fun onInitializeClient() {
         logger.info("${javaClass.simpleName} initialized with mod-id $MOD_ID")
 
