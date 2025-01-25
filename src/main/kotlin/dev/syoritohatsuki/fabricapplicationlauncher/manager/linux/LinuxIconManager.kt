@@ -4,6 +4,7 @@ import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherCli
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
 import dev.syoritohatsuki.fabricapplicationlauncher.util.HOME
 import dev.syoritohatsuki.fabricapplicationlauncher.util.XDG_DATA_DIRS
+import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.client.texture.NativeImageBackedTexture
@@ -31,12 +32,14 @@ object LinuxIconManager : IconManager {
     private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
     val iconPaths: MutableMap<String, String> = mutableMapOf()
 
-    private val RESOLUTIONS = Runtime.getRuntime().exec(
-        arrayOf(
-            "bash",
-            "-c",
-            "find /usr/share/icons/ -type d -regextype posix-extended -regex '.*/[0-9]+x[0-9]+$' | awk -F/ '{print \$NF}' | sort -u"
-        )
+    private val RESOLUTIONS = execute(
+        "find",
+        "/usr/share/icons/",
+        "-type d",
+        "-regextype posix-extended",
+        "-regex '.*/[0-9]+x[0-9]+$'",
+        "| awk -F/ '{print \$NF}'",
+        "| sort -u"
     ).inputStream.bufferedReader().readLines().asSequence().filter { it.matches(Regex("\\d+x\\d+")) }
         .map { it to it.split("x")[1].toInt() }.sortedByDescending { it.second }.map { it.first }.toMutableList()
         .apply {
