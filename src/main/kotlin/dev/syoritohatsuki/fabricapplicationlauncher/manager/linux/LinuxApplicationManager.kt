@@ -25,24 +25,24 @@ object LinuxApplicationManager : ApplicationManager {
                 Path(location).listDirectoryEntries().forEach dirs@{ filePath ->
                     val application = Application("")
                     filePath.readLines().forEach line@{ line ->
-                        if (line.startsWith("Name=")) {
-                            application.name.ifBlank { application.name = line.split("=")[1] }
+                        if (line.startsWith("Name=")) application.name.ifBlank {
+                            application.name = line.split("=", limit = 2)[1]
                         }
 
                         if (line.startsWith("Icon=")) application.icon.ifBlank {
-                            application.icon = line.split("=")[1]
+                            application.icon = line.split("=", limit = 2)[1]
                         }
 
                         if (line.startsWith("Categories=")) application.categories.ifEmpty {
-                            application.categories = line.split("=")[1].split(";")
+                            application.categories = line.split("=", limit = 2)[1].split(";").filter { it.isNotBlank() }
                         }
 
                         if (line.startsWith("GenericName=")) application.description.ifBlank {
-                            application.description = line.split("=")[1]
+                            application.description = line.split("=", limit = 2)[1]
                         }
 
                         if (line.startsWith("Exec=")) application.executable.ifBlank {
-                            application.executable = line.split("=")[1]
+                            application.executable = line.split("=", limit = 2)[1]
                         }
                         if (line == "NoDisplay=true") return@dirs
                     }
