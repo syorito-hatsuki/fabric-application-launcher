@@ -48,12 +48,32 @@ dependencies {
     val duckyUpdaterLibVersion: String by project
     include(modImplementation("maven.modrinth", "ducky-updater-lib", duckyUpdaterLibVersion))
 
-    include(implementation("org.apache.xmlgraphics", "batik-transcoder", "1.16") {
-        exclude("xml-apis", "xml-apis")
-    })
-    include(implementation("org.apache.xmlgraphics", "batik-codec", "1.16") {
-        exclude("xml-apis", "xml-apis")
-    })
+    arrayOf(
+        "anim",
+        "awt-util",
+        "bridge",
+        "codec",
+        "constants",
+        "css",
+        "dom",
+        "ext",
+        "gvt",
+        "i18n",
+        "parser",
+        "script",
+        "svg-dom",
+        "transcoder",
+        "util",
+        "xml",
+    ).map {
+        include(implementation("org.apache.xmlgraphics", "batik-${it}", "1.16") {
+            exclude("xml-apis", "xml-apis")
+        })
+    }
+
+    include(implementation("xml-apis", "xml-apis-ext", "1.3.04"))
+
+    include(implementation("org.apache.xmlgraphics", "xmlgraphics-commons", "2.7"))
 }
 
 tasks {
