@@ -122,21 +122,21 @@ object LinuxIconManager : IconManager {
 
     private fun getIconPath(icon: String, theme: String = ""): Path? {
         ICON_DIRECTORIES.forEach { basePath ->
-            return searchIcon(basePath.resolve("icons").resolve(theme), icon) ?: return@forEach
+            return searchIcon(icon, basePath.resolve("icons").resolve(theme)) ?: return@forEach
         }
 
-        return ICON_DIRECTORIES.map { it.resolve("icons/hicolor") }.map { searchIcon(it, icon) }
-            .firstOrNull(Objects::nonNull) ?: searchIcon(Paths.get("/", "usr", "share", "pixmaps"), icon) ?: run {
+        return ICON_DIRECTORIES.map { it.resolve("icons/hicolor") }.map { searchIcon(icon, it) }
+            .firstOrNull(Objects::nonNull) ?: searchIcon(icon, Paths.get("/", "usr", "share", "pixmaps")) ?: run {
 
             ICON_DIRECTORIES.forEach { basePath ->
-                return searchIcon(basePath.resolve("icons"), icon)
+                return searchIcon(icon, basePath.resolve("icons"))
             }
 
             return null
         }
     }
 
-    private fun searchIcon(themePath: Path, iconName: String): Path? {
+    private fun searchIcon(iconName: String, themePath: Path): Path? {
         RESOLUTIONS.forEach { resolution ->
             val resolutionPath = themePath.resolve(resolution)
             if (!Files.isDirectory(resolutionPath)) return@forEach
