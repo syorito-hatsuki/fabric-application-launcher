@@ -3,7 +3,7 @@ package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.ApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget
@@ -90,12 +90,7 @@ class ApplicationListWidget(
             this.onPressed()
 
             if (Util.getMeasuringTimeMs() - this.clickTime < 250L) {
-                client.player?.sendMessage(
-                    Text.literal((iconManager as LinuxIconManager).iconPaths[application.icon]),
-                    true
-                )
-                client.textRenderer
-
+                execute(application.executable)
             }
 
             this.clickTime = Util.getMeasuringTimeMs()
