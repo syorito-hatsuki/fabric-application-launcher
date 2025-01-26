@@ -23,6 +23,8 @@ class ApplicationListWidget(
     itemHeight: Int,
 ) : AlwaysSelectedEntryListWidget<ApplicationListWidget.ApplicationEntry>(client, width, height, y, itemHeight) {
 
+    private var search = ""
+
     init {
         setPosition(this.width / 2, this.height / 2)
         applicationManager.getApps().sortedBy { it.name }.forEach { app ->
@@ -31,11 +33,15 @@ class ApplicationListWidget(
     }
 
     fun setSearch(search: String) {
-        this.clearEntries()
-        applicationManager.getApps().sortedBy { it.name }.filter {
-            search.isBlank() || (it.name.contains(search, true) || it.description.contains(search, true))
-        }.forEach { app ->
-            addEntry(ApplicationEntry(client, iconManager, app))
+        if (this.search != search) {
+            this.clearEntries()
+            refreshScroll()
+            applicationManager.getApps().sortedBy { it.name }.filter {
+                search.isBlank() || (it.name.contains(search, true) || it.description.contains(search, true))
+            }.forEach { app ->
+                addEntry(ApplicationEntry(client, iconManager, app))
+            }
+            this.search = search
         }
     }
 
