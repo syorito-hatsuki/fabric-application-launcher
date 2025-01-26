@@ -7,9 +7,10 @@ import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget
+import net.minecraft.client.gui.widget.MultilineTextWidget
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.text.Text
-import net.minecraft.util.Colors
+import net.minecraft.util.Formatting
 import net.minecraft.util.Util
 
 class ApplicationListWidget(
@@ -42,8 +43,7 @@ class ApplicationListWidget(
         private val client: MinecraftClient,
         private val iconManager: IconManager,
         val application: Application
-    ) :
-        Entry<ApplicationEntry>(), AutoCloseable {
+    ) : Entry<ApplicationEntry>(), AutoCloseable {
 
         private var clickTime: Long = 0
 
@@ -59,21 +59,33 @@ class ApplicationListWidget(
             hovered: Boolean,
             tickDelta: Float
         ) {
-            context.drawTextWithShadow(client.textRenderer, application.name, x + 32 + 3, y + 1, Colors.WHITE)
-            context.drawTextWithShadow(
-                client.textRenderer,
-                application.description,
+            MultilineTextWidget(
+                x + 32 + 3, y + 1, Text.literal(application.name).formatted(Formatting.WHITE), client.textRenderer
+            ).apply {
+                setMaxWidth(entryWidth - 36)
+                setMaxRows(1)
+            }.renderWidget(context, mouseX, mouseY, tickDelta)
+
+            MultilineTextWidget(
                 x + 32 + 3,
                 y + 9 + 3,
-                Colors.LIGHT_GRAY
-            )
-            context.drawTextWithShadow(
-                client.textRenderer,
-                application.executable,
+                Text.literal(application.description).formatted(Formatting.GRAY),
+                client.textRenderer
+            ).apply {
+                setMaxWidth(entryWidth - 36)
+                setMaxRows(1)
+            }.renderWidget(context, mouseX, mouseY, tickDelta)
+
+            MultilineTextWidget(
                 x + 32 + 3,
                 y + 9 + 9 + 3,
-                Colors.GRAY
-            )
+                Text.literal(application.executable).formatted(Formatting.GRAY),
+                client.textRenderer,
+            ).apply {
+                setMaxWidth(entryWidth - 36)
+                setMaxRows(1)
+            }.renderWidget(context, mouseX, mouseY, tickDelta)
+
             context.drawTexture(
                 RenderLayer::getGuiTextured,
                 iconManager.getIconIdentifier(application.icon),
