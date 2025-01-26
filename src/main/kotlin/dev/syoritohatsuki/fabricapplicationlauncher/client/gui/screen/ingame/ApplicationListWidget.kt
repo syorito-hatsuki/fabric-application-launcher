@@ -14,18 +14,26 @@ import net.minecraft.util.Util
 
 class ApplicationListWidget(
     client: MinecraftClient,
-    applicationManager: ApplicationManager,
-    iconManager: IconManager,
+    val applicationManager: ApplicationManager,
+    val iconManager: IconManager,
     width: Int,
     height: Int,
     y: Int,
     itemHeight: Int,
-    search: String,
 ) : AlwaysSelectedEntryListWidget<ApplicationListWidget.ApplicationEntry>(client, width, height, y, itemHeight) {
 
     init {
         setPosition(this.width / 2, this.height / 2)
         applicationManager.getApps().sortedBy { it.name }.forEach { app ->
+            addEntry(ApplicationEntry(client, iconManager, app))
+        }
+    }
+
+    fun setSearch(search: String) {
+        this.clearEntries()
+        applicationManager.getApps().sortedBy { it.name }.filter {
+            search.isBlank() || (it.name.contains(search, true) || it.description.contains(search, true))
+        }.forEach { app ->
             addEntry(ApplicationEntry(client, iconManager, app))
         }
     }

@@ -5,6 +5,9 @@ import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxApplicati
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManager
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.widget.DirectionalLayoutWidget
+import net.minecraft.client.gui.widget.SimplePositioningWidget
+import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 
@@ -15,20 +18,36 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
     }
 
     private var debugMode = false
+    private var positioningWidget: SimplePositioningWidget = SimplePositioningWidget(0, 0, this.width, this.height)
+
+    private var searchBox: TextFieldWidget? = null
     private lateinit var applicationListWidget: ApplicationListWidget
 
     override fun init() {
-        applicationListWidget = ApplicationListWidget(
-            client = client ?: return,
-            applicationManager = LinuxApplicationManager,
-            iconManager = LinuxIconManager,
-            width = width / 2,
-            height = height / 2,
-            y = 48,
-            itemHeight = 36,
-            search = ""
+        val directionalLayoutWidget = positioningWidget.add(DirectionalLayoutWidget.vertical().spacing(8))
+        directionalLayoutWidget.mainPositioner.alignHorizontalCenter()
+
+        searchBox = directionalLayoutWidget.add(
+            TextFieldWidget(textRenderer, 200, 20, Text.literal("Search..."))
         )
-        addDrawableChild(applicationListWidget)
+
+        applicationListWidget = directionalLayoutWidget.add(
+            ApplicationListWidget(
+                client = client ?: return,
+                applicationManager = LinuxApplicationManager,
+                iconManager = LinuxIconManager,
+                width = width / 2,
+                height = height / 2,
+                y = 48,
+                itemHeight = 36
+            )
+        )
+
+        positioningWidget.forEachChild(::addDrawableChild)
+
+        searchBox?.setChangedListener(applicationListWidget::setSearch)
+
+        this.refreshWidgetPositions()
     }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
@@ -74,18 +93,25 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
         }
     }
 
+    override fun refreshWidgetPositions() {
+        positioningWidget.refreshPositions()
+        SimplePositioningWidget.setPos(this.positioningWidget, this.navigationFocus)
+    }
+
     override fun shouldPause(): Boolean = false
 
     override fun shouldCloseOnEsc(): Boolean = true
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        if (FabricApplicationLauncherClientMod.openApplicationListKeyBinding.matchesKey(keyCode, -1)) {
-            close()
-            return true
-        }
-        if (FabricApplicationLauncherClientMod.enableDebugApplicationListKeyBinding.matchesKey(keyCode, -1)) {
-            debugMode = !debugMode
-            return true
+        if (searchBox?.isSelected == false) {
+            if (FabricApplicationLauncherClientMod.openApplicationListKeyBinding.matchesKey(keyCode, -1)) {
+                close()
+                return true
+            }
+            if (FabricApplicationLauncherClientMod.enableDebugApplicationListKeyBinding.matchesKey(keyCode, -1)) {
+                debugMode = !debugMode
+                return true
+            }
         }
         return super.keyPressed(keyCode, scanCode, modifiers)
     }
