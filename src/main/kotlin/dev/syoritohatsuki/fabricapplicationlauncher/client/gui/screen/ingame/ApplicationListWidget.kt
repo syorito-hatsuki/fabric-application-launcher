@@ -6,6 +6,7 @@ import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
 import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget
 import net.minecraft.client.gui.widget.MultilineTextWidget
 import net.minecraft.client.render.RenderLayer
@@ -21,6 +22,7 @@ class ApplicationListWidget(
     height: Int,
     y: Int,
     itemHeight: Int,
+    private val screen: ApplicationListScreen
 ) : AlwaysSelectedEntryListWidget<ApplicationListWidget.ApplicationEntry>(client, width, height, y, itemHeight) {
 
     private var search = ""
@@ -45,10 +47,34 @@ class ApplicationListWidget(
         }
     }
 
+    override fun drawScrollbar(context: DrawContext) {
+    }
+
+    override fun drawMenuListBackground(context: DrawContext) {
+    }
+
+    override fun drawHeaderAndFooterSeparators(context: DrawContext) {
+        mapOf(
+            Screen.INWORLD_HEADER_SEPARATOR_TEXTURE to this.y - 2,
+            Screen.INWORLD_FOOTER_SEPARATOR_TEXTURE to this.bottom
+        ).map {
+            context.drawTexture(
+                RenderLayer::getGuiTextured,
+                it.key,
+                (screen.searchBox?.x ?: 0) - 2,
+                it.value,
+                0.0f,
+                0.0f,
+                rowWidth + 2,
+                2,
+                32,
+                2
+            )
+        }
+    }
+
     inner class ApplicationEntry(
-        private val client: MinecraftClient,
-        private val iconManager: IconManager,
-        val application: Application
+        private val client: MinecraftClient, private val iconManager: IconManager, val application: Application
     ) : Entry<ApplicationEntry>(), AutoCloseable {
 
         private var clickTime: Long = 0

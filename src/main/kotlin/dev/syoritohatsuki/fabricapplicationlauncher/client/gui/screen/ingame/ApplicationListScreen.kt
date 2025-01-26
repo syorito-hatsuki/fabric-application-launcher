@@ -6,6 +6,7 @@ import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManag
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.DirectionalLayoutWidget
+import net.minecraft.client.gui.widget.LockButtonWidget
 import net.minecraft.client.gui.widget.SimplePositioningWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.Text
@@ -20,26 +21,37 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
     private var debugMode = false
     private var positioningWidget: SimplePositioningWidget = SimplePositioningWidget(0, 0, this.width, this.height)
 
-    private var searchBox: TextFieldWidget? = null
+    var searchBox: TextFieldWidget? = null
+    private var settingsButton: LockButtonWidget? = null
     private lateinit var applicationListWidget: ApplicationListWidget
 
     override fun init() {
-        val directionalLayoutWidget = positioningWidget.add(DirectionalLayoutWidget.vertical().spacing(8))
-        directionalLayoutWidget.mainPositioner.alignHorizontalCenter()
+        val column = positioningWidget.add(DirectionalLayoutWidget.vertical().spacing(8))
+        column.mainPositioner.alignHorizontalCenter()
 
-        searchBox = directionalLayoutWidget.add(
-            TextFieldWidget(textRenderer, 200, 20, Text.literal("Search..."))
+        val row = column.add(DirectionalLayoutWidget.horizontal().spacing(8))
+        searchBox = row?.add(
+            TextFieldWidget(textRenderer, 190, 20, Text.literal("Search..."))
         )
 
-        applicationListWidget = directionalLayoutWidget.add(
+        settingsButton = row?.add(
+            LockButtonWidget(20, 20) {
+                // TODO Open settings
+            }.apply {
+                isLocked = true
+            }
+        )
+
+        applicationListWidget = column.add(
             ApplicationListWidget(
                 client = client ?: return,
                 applicationManager = LinuxApplicationManager,
                 iconManager = LinuxIconManager,
-                width = width / 2,
+                width = if (width > 220) width else 220,
                 height = height / 2,
                 y = 48,
-                itemHeight = 36
+                itemHeight = 36,
+                this
             )
         )
 
@@ -52,6 +64,9 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(context, mouseX, mouseY, delta)
+        if (settingsButton?.isHovered == true) {
+            setTooltip(Text.literal("Settings (WIP)"))
+        }
         if (debugMode) {
             context.drawTooltip(
                 textRenderer, listOf(
@@ -96,6 +111,7 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
     override fun refreshWidgetPositions() {
         positioningWidget.refreshPositions()
         SimplePositioningWidget.setPos(this.positioningWidget, this.navigationFocus)
+        applicationListWidget.setDimensions(if (width > 220) width else 220, height / 2)
     }
 
     override fun shouldPause(): Boolean = false
@@ -113,9 +129,11 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
                 return true
             }
         }
+
         return super.keyPressed(keyCode, scanCode, modifiers)
     }
 
     override fun renderBackground(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
+        this.renderDarkening(context)
     }
 }
