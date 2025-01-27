@@ -95,7 +95,7 @@ object LinuxIconManager : IconManager {
             MinecraftClient.getInstance().textureManager.registerTexture(this, loadedNativeImageBackedTexture[icon])
         }
 
-    fun preload(icon: String) {
+    override fun preload(icon: String) {
         val path = getIconPath(icon) ?: run {
             loadedNativeImageBackedTexture[icon] = NativeImageBackedTexture(NativeImage.read(createEmptyPng()))
             return

@@ -5,4 +5,5 @@ import net.minecraft.util.Identifier
 interface IconManager {
     fun getIconIdentifier(icon: String): Identifier
     fun getUniqueIconsCount(): Int
+    fun preload(icon: String)
 }
