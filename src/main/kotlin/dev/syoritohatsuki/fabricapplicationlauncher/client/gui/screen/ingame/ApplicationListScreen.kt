@@ -99,9 +99,10 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
                         Text.literal("Exec: ").formatted(Formatting.GREEN)
                             .append(Text.literal(app.executable).formatted(Formatting.YELLOW))
                     )
-                    if (app.icon.isNotBlank()) add(
+                    if (app.icon.isNotBlank() && !LinuxIconManager.iconPaths[app.icon].isNullOrBlank()) add(
                         Text.literal("Icon path: ").formatted(Formatting.GREEN).append(
-                            Text.literal(LinuxIconManager.iconPaths[app.icon]).formatted(Formatting.YELLOW)
+                            Text.literal(LinuxIconManager.iconPaths[app.icon] ?: "Impossible path!")
+                                .formatted(Formatting.YELLOW)
                         )
                     )
                 }, -PADDING, textRenderer.fontHeight * 6
