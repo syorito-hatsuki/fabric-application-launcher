@@ -3,6 +3,7 @@ package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.util.ManagerRegistry
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.DirectionalLayoutWidget
@@ -45,8 +46,8 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
         applicationListWidget = column.add(
             ApplicationListWidget(
                 client = client ?: return,
-                applicationManager = LinuxApplicationManager,
-                iconManager = LinuxIconManager,
+                applicationManager = ManagerRegistry.getApplicationManager(),
+                iconManager = ManagerRegistry.getIconManager(),
                 width = if (width > 220) width else 220,
                 height = height / 2,
                 y = 48,
