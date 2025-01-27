@@ -121,6 +121,9 @@ object LinuxIconManager : IconManager {
     }
 
     private fun getIconPath(icon: String, theme: String = ""): Path? {
+
+        if (icon.startsWith("/snap/")) return Path.of(icon)
+
         ICON_DIRECTORIES.forEach { basePath ->
             return searchIcon(icon, basePath.resolve("icons").resolve(theme)) ?: return@forEach
         }
