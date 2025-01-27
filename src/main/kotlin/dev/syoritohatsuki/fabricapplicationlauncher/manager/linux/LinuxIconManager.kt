@@ -16,15 +16,13 @@ import org.apache.batik.transcoder.image.PNGTranscoder
 import org.apache.batik.util.XMLResourceDescriptor
 import org.w3c.dom.svg.SVGDocument
 import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.InputStream
+import java.io.*
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
+import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 
 object LinuxIconManager : IconManager {
@@ -47,7 +45,7 @@ object LinuxIconManager : IconManager {
             add("")
         }
 
-    private val FORMATS = arrayOf(".png", ".svg", ".xpm")
+    private val FORMATS = arrayOf(".png", ".svg", ".svgz", ".xpm")
 
     private val ICON_DIRECTORIES: Array<Path> = arrayOf(
         *XDG_DATA_DIRS.split(":").map(Paths::get).toTypedArray(), Paths.get(HOME, ".local", "share")
@@ -59,11 +57,21 @@ object LinuxIconManager : IconManager {
 
     private fun svgToPngInputStream(inputStream: InputStream): InputStream {
         try {
+
+            val bufferedInputStream = BufferedInputStream(inputStream)
+
+            val decompressedInputStream = when {
+                isGzipStream(bufferedInputStream) -> GZIPInputStream(bufferedInputStream)
+                else -> bufferedInputStream
+            }
+
             val svgDocument: SVGDocument =
                 SAXSVGDocumentFactory(XMLResourceDescriptor.getXMLParserClassName()).createSVGDocument(
-                    null, inputStream.bufferedReader().use {
+                    null, decompressedInputStream.bufferedReader().use {
                         it.readText()
-                    }.replace("""version="1"""", """version="1.1"""").byteInputStream()
+                    }.replace("""version="1"""", """version="1.1"""").replace(
+                        Regex("""<stop((?!offset=)[^>])*?>"""), "<stop offset=\"0%\"$1>"
+                    ).byteInputStream()
                 )
 
             val svgRoot = svgDocument.documentElement
@@ -108,6 +116,7 @@ object LinuxIconManager : IconManager {
                         NativeImage.read(
                             when {
                                 path.toString().endsWith(".svg") -> svgToPngInputStream(inputStream)
+                                path.toString().endsWith(".svgz") -> svgToPngInputStream(inputStream)
                                 else -> inputStream
                             }
                         )
@@ -155,6 +164,15 @@ object LinuxIconManager : IconManager {
             }
         }
         return null
+    }
+
+    private fun isGzipStream(inputStream: InputStream): Boolean {
+        inputStream.mark(2)
+        val magicNumber = ByteArray(2)
+        val bytesRead = inputStream.read(magicNumber)
+        inputStream.reset()
+
+        return bytesRead == 2 && magicNumber[0] == 0x1F.toByte() && magicNumber[1] == 0x8B.toByte() // GZIP magic number
     }
 
     override fun getIconIdentifier(icon: String): Identifier = loadedIcons[icon] ?: loadIcon(icon)
