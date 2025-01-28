@@ -21,7 +21,6 @@ import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 
@@ -34,7 +33,25 @@ object LinuxIconManager : IconManager {
         SVG, SVGZ, PNG
     }
 
-    val RESOLUTIONS = execute(
+    private val ICON_DIRECTORIES: Array<Path> = arrayOf(
+        *XDG_DATA_DIRS.split(":").map(Paths::get).toTypedArray(), Paths.get(HOME, ".local", "share")
+    )
+
+    val THEMES: Map<String, List<String>> = mutableMapOf<String, List<String>>().apply {
+        ICON_DIRECTORIES.map { it.resolve("icons") }.filter { Files.exists(it) && Files.isDirectory(it) }.flatMap {
+            it.filter(Files::isDirectory)
+        }.forEach { themePath ->
+            val indexFile = themePath.resolve("index.theme")
+            if (Files.exists(indexFile)) {
+                val properties = loadPropertiesFromIndex(indexFile)
+                val themeName = properties["Name"] ?: themePath.fileName.toString()
+                val inherits = properties["Inherits"]?.split(",")?.map { it.trim() } ?: emptyList()
+                this[themeName] = inherits
+            }
+        }
+    }
+
+    private val RESOLUTIONS = execute(
         "find /usr/share/icons/ -type d -regextype posix-extended -regex '.*/[0-9]+x[0-9]+$' | awk -F/ '{print \$NF}' | sort -u"
     ).inputStream.bufferedReader().readLines().asSequence().filter { it.matches(Regex("\\d+x\\d+")) }
         .map { it to it.split("x")[1].toInt() }.sortedByDescending { it.second }.map { it.first }.toMutableList()
@@ -43,9 +60,23 @@ object LinuxIconManager : IconManager {
             add("")
         }
 
-    private val ICON_DIRECTORIES: Array<Path> = arrayOf(
-        *XDG_DATA_DIRS.split(":").map(Paths::get).toTypedArray(), Paths.get(HOME, ".local", "share")
-    )
+    private fun loadPropertiesFromIndex(indexFile: Path): Map<String, String> {
+        val properties = mutableMapOf<String, String>()
+        val sectionPattern = Regex("^\\[.*]$")
+        val lines = Files.readAllLines(indexFile)
+
+        var inGeneralSection = false
+        for (line in lines) {
+            val trimmed = line.trim()
+            if (sectionPattern.matches(trimmed)) {
+                inGeneralSection = trimmed == "[Icon Theme]"
+            } else if (inGeneralSection && "=" in trimmed) {
+                val (key, value) = trimmed.split("=", limit = 2).map { it.trim() }
+                properties[key] = value
+            }
+        }
+        return properties
+    }
 
     private fun createEmptyPng(): InputStream = ByteArrayInputStream(ByteArrayOutputStream().apply {
         ImageIO.write(BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), "png", this)
@@ -118,6 +149,7 @@ object LinuxIconManager : IconManager {
                                 path.toString().endsWith(".${FORMATS.SVGZ.name}", true) -> svgToPngInputStream(
                                     inputStream
                                 )
+
                                 else -> inputStream
                             }
                         )
@@ -130,25 +162,24 @@ object LinuxIconManager : IconManager {
         }
     }
 
-    private fun getIconPath(icon: String, theme: String = ""): Path? {
+    private fun getIconPath(icon: String, theme: String = "breeze"): Path? {
+        val themePaths = mutableListOf(theme)
 
-        FORMATS.entries.forEach {
-            if (icon.endsWith(it.name, true)) return Path.of(icon)
+        if (theme.isNotEmpty()) {
+            themePaths.addAll(THEMES[theme] ?: emptyList())
         }
 
-        ICON_DIRECTORIES.forEach { basePath ->
-            return searchIcon(icon, basePath.resolve("icons").resolve(theme)) ?: return@forEach
-        }
+        themePaths.add("hicolor")
+        themePaths.add("")
 
-        return ICON_DIRECTORIES.map { it.resolve("icons/hicolor") }.map { searchIcon(icon, it) }
-            .firstOrNull(Objects::nonNull) ?: searchIcon(icon, Paths.get("/", "usr", "share", "pixmaps")) ?: run {
-
+        themePaths.forEach { themePath ->
             ICON_DIRECTORIES.forEach { basePath ->
-                return searchIcon(icon, basePath.resolve("icons"))
+                val result = searchIcon(icon, basePath.resolve("icons").resolve(themePath))
+                if (result != null) return result
             }
-
-            return null
         }
+
+        return searchIcon(icon, Paths.get("/", "usr", "share", "pixmaps"))
     }
 
     private fun searchIcon(iconName: String, themePath: Path): Path? {
@@ -159,7 +190,6 @@ object LinuxIconManager : IconManager {
             try {
                 Files.walk(resolutionPath).use { files ->
                     return files.filter(Files::isRegularFile).filter { path ->
-                        /* TODO Add SVG priority */
                         path.fileName.toString().startsWith("$iconName.") && FORMATS.entries.any {
                             path.fileName.toString().endsWith(it.name, true)
                         }
@@ -178,7 +208,7 @@ object LinuxIconManager : IconManager {
         val bytesRead = inputStream.read(magicNumber)
         inputStream.reset()
 
-        return bytesRead == 2 && magicNumber[0] == 0x1F.toByte() && magicNumber[1] == 0x8B.toByte() // GZIP magic number
+        return bytesRead == 2 && magicNumber[0] == 0x1F.toByte() && magicNumber[1] == 0x8B.toByte()
     }
 
     override fun getIconIdentifier(icon: String): Identifier = loadedIcons[icon] ?: loadIcon(icon)
