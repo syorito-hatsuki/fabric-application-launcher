@@ -30,14 +30,8 @@ object LinuxIconManager : IconManager {
     private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
     val iconPaths: MutableMap<String, String> = mutableMapOf()
 
-    private val RESOLUTIONS = execute(
-        "find",
-        "/usr/share/icons/",
-        "-type d",
-        "-regextype posix-extended",
-        "-regex '.*/[0-9]+x[0-9]+$'",
-        "| awk -F/ '{print \$NF}'",
-        "| sort -u"
+    val RESOLUTIONS = execute(
+        "find /usr/share/icons/ -type d -regextype posix-extended -regex '.*/[0-9]+x[0-9]+$' | awk -F/ '{print \$NF}' | sort -u"
     ).inputStream.bufferedReader().readLines().asSequence().filter { it.matches(Regex("\\d+x\\d+")) }
         .map { it to it.split("x")[1].toInt() }.sortedByDescending { it.second }.map { it.first }.toMutableList()
         .apply {
