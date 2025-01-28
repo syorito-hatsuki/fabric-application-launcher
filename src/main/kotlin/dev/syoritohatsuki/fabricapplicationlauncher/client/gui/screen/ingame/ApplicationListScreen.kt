@@ -60,7 +60,7 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
 
         searchBox?.setChangedListener(applicationListWidget::setSearch)
 
-        this.refreshWidgetPositions()
+        refreshWidgetPositions()
     }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
@@ -111,9 +111,9 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
     }
 
     override fun refreshWidgetPositions() {
+        applicationListWidget.height = height / 2
         positioningWidget.refreshPositions()
         SimplePositioningWidget.setPos(this.positioningWidget, this.navigationFocus)
-        applicationListWidget.setDimensions(if (width > 220) width else 220, height / 2)
     }
 
     override fun shouldPause(): Boolean = false

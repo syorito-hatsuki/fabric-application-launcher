@@ -28,7 +28,6 @@ class ApplicationListWidget(
     private var search = ""
 
     init {
-        setPosition(this.width / 2, this.height / 2)
         applicationManager.getApps().sortedBy { it.name }.forEach { app ->
             addEntry(ApplicationEntry(client, iconManager, app))
         }
