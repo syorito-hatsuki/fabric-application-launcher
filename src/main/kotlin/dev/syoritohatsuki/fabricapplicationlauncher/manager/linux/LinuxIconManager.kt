@@ -30,6 +30,10 @@ object LinuxIconManager : IconManager {
     private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
     val iconPaths: MutableMap<String, String> = mutableMapOf()
 
+    enum class FORMATS {
+        SVG, SVGZ, PNG
+    }
+
     val RESOLUTIONS = execute(
         "find /usr/share/icons/ -type d -regextype posix-extended -regex '.*/[0-9]+x[0-9]+$' | awk -F/ '{print \$NF}' | sort -u"
     ).inputStream.bufferedReader().readLines().asSequence().filter { it.matches(Regex("\\d+x\\d+")) }
@@ -38,8 +42,6 @@ object LinuxIconManager : IconManager {
             addFirst("scalable")
             add("")
         }
-
-    private val FORMATS = arrayOf(".png", ".svg", ".svgz", ".xpm")
 
     private val ICON_DIRECTORIES: Array<Path> = arrayOf(
         *XDG_DATA_DIRS.split(":").map(Paths::get).toTypedArray(), Paths.get(HOME, ".local", "share")
@@ -109,8 +111,13 @@ object LinuxIconManager : IconManager {
                     loadedNativeImageBackedTexture[icon] = NativeImageBackedTexture(
                         NativeImage.read(
                             when {
-                                path.toString().endsWith(".svg") -> svgToPngInputStream(inputStream)
-                                path.toString().endsWith(".svgz") -> svgToPngInputStream(inputStream)
+                                path.toString().endsWith(".${FORMATS.SVG.name}", true) -> svgToPngInputStream(
+                                    inputStream
+                                )
+
+                                path.toString().endsWith(".${FORMATS.SVGZ.name}", true) -> svgToPngInputStream(
+                                    inputStream
+                                )
                                 else -> inputStream
                             }
                         )
@@ -125,7 +132,9 @@ object LinuxIconManager : IconManager {
 
     private fun getIconPath(icon: String, theme: String = ""): Path? {
 
-        if (icon.startsWith("/snap/")) return Path.of(icon)
+        FORMATS.entries.forEach {
+            if (icon.endsWith(it.name, true)) return Path.of(icon)
+        }
 
         ICON_DIRECTORIES.forEach { basePath ->
             return searchIcon(icon, basePath.resolve("icons").resolve(theme)) ?: return@forEach
@@ -149,8 +158,11 @@ object LinuxIconManager : IconManager {
 
             try {
                 Files.walk(resolutionPath).use { files ->
-                    return files.filter(Files::isRegularFile).filter {
-                        it.fileName.toString().startsWith("$iconName.") && FORMATS.any(it.fileName.toString()::endsWith)
+                    return files.filter(Files::isRegularFile).filter { path ->
+                        /* TODO Add SVG priority */
+                        path.fileName.toString().startsWith("$iconName.") && FORMATS.entries.any {
+                            path.fileName.toString().endsWith(it.name, true)
+                        }
                     }.findFirst().orElse(null) ?: return@forEach
                 }
             } catch (e: IOException) {
