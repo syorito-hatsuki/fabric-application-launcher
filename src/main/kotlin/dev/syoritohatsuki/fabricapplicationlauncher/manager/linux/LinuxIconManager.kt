@@ -60,22 +60,18 @@ object LinuxIconManager : IconManager {
             add("")
         }
 
-    private fun loadPropertiesFromIndex(indexFile: Path): Map<String, String> {
-        val properties = mutableMapOf<String, String>()
-        val sectionPattern = Regex("^\\[.*]$")
-        val lines = Files.readAllLines(indexFile)
-
+    private fun loadPropertiesFromIndex(indexFile: Path): Map<String, String> = mutableMapOf<String, String>().apply {
         var inGeneralSection = false
-        for (line in lines) {
+        Files.readAllLines(indexFile).forEach { line ->
             val trimmed = line.trim()
-            if (sectionPattern.matches(trimmed)) {
-                inGeneralSection = trimmed == "[Icon Theme]"
-            } else if (inGeneralSection && "=" in trimmed) {
-                val (key, value) = trimmed.split("=", limit = 2).map { it.trim() }
-                properties[key] = value
+            when {
+                Regex("^\\[.*]$").matches(trimmed) -> inGeneralSection = trimmed == "[Icon Theme]"
+                inGeneralSection && "=" in trimmed -> {
+                    val (key, value) = trimmed.split("=", limit = 2).map { it.trim() }
+                    this[key] = value
+                }
             }
         }
-        return properties
     }
 
     private fun createEmptyPng(): InputStream = ByteArrayInputStream(ByteArrayOutputStream().apply {
@@ -173,9 +169,8 @@ object LinuxIconManager : IconManager {
         themePaths.add("")
 
         themePaths.forEach { themePath ->
-            ICON_DIRECTORIES.forEach { basePath ->
-                val result = searchIcon(icon, basePath.resolve("icons").resolve(themePath))
-                if (result != null) return result
+            ICON_DIRECTORIES.forEach dir@{ basePath ->
+                return searchIcon(icon, basePath.resolve("icons").resolve(themePath)) ?: return@dir
             }
         }
 
