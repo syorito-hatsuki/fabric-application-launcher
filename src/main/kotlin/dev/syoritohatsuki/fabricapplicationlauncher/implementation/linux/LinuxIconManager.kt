@@ -7,6 +7,7 @@ import dev.syoritohatsuki.fabricapplicationlauncher.util.ManagerRegistry
 import dev.syoritohatsuki.fabricapplicationlauncher.util.XDG_DATA_DIRS
 import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
 import kotlinx.coroutines.*
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.client.texture.NativeImageBackedTexture
@@ -25,16 +26,26 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
+import kotlin.io.path.createFile
+import kotlin.io.path.notExists
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 object LinuxIconManager : IconManager {
-    private val loadedIcons: MutableMap<String, Identifier> = mutableMapOf()
-    private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
-    val iconPaths: MutableMap<String, String> = mutableMapOf()
+    private val configFile =
+        FabricLoader.getInstance().configDir.resolve("${FabricApplicationLauncherClientMod.MOD_ID}.json").apply {
+            if (notExists()) createFile()
+        }
 
-    private var localSelectedTheme = ""
+    private var localSelectedTheme = configFile.readText()
     private val themePaths = mutableListOf(localSelectedTheme)
 
+    private val loadedIcons: MutableMap<String, Identifier> = mutableMapOf()
+    private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
+
     private val scope = CoroutineScope(Dispatchers.IO)
+
+    val iconPaths: MutableMap<String, String> = mutableMapOf()
 
     var status = IconManager.STATUS.LOADING
 
@@ -75,6 +86,15 @@ object LinuxIconManager : IconManager {
             add("")
         }
 
+    init {
+        if (localSelectedTheme.isNotEmpty()) {
+            themePaths.addAll(THEMES[localSelectedTheme] ?: emptyList())
+        }
+
+        themePaths.add("hicolor")
+        themePaths.add("")
+    }
+
     private fun createEmptyPng(): InputStream = ByteArrayInputStream(ByteArrayOutputStream().apply {
         ImageIO.write(BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), "png", this)
     }.toByteArray())
@@ -95,6 +115,10 @@ object LinuxIconManager : IconManager {
                         it.readText()
                     }.replace("""version="1"""", """version="1.1"""").replace(
                         Regex("""<stop((?!offset=)[^>])*?>"""), "<stop offset=\"0%\"$1>"
+                    ).replace(
+                        Regex("<namedview[^>]*>(.*?)</namedview>", RegexOption.DOT_MATCHES_ALL), ""
+                    ).replace(
+                        Regex("<namedview[^>]*/>"), ""
                     ).byteInputStream()
                 )
 
@@ -199,7 +223,7 @@ object LinuxIconManager : IconManager {
         return bytesRead == 2 && magicNumber[0] == 0x1F.toByte() && magicNumber[1] == 0x8B.toByte()
     }
 
-    fun reload(theme: String) {
+    fun reload(theme: String = localSelectedTheme) {
         FabricApplicationLauncherClientMod.logger.error("Start reloading from $localSelectedTheme to $theme")
         status = IconManager.STATUS.LOADING
 
@@ -216,6 +240,7 @@ object LinuxIconManager : IconManager {
 
         localSelectedTheme = theme
         themePaths.add(localSelectedTheme)
+        configFile.writeText(theme)
 
         if (localSelectedTheme.isNotEmpty()) {
             themePaths.addAll(THEMES[localSelectedTheme] ?: emptyList())
