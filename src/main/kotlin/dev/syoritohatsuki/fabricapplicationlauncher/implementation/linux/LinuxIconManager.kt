@@ -208,7 +208,7 @@ object LinuxIconManager : IconManager {
                     }.findFirst().orElse(null) ?: return@forEach
                 }
             } catch (e: IOException) {
-                System.err.println("Error searching in: " + resolutionPath + " - " + e.message)
+                FabricApplicationLauncherClientMod.logger.error("Error searching in: " + resolutionPath + " - " + e.message)
             }
         }
         return null
@@ -224,7 +224,7 @@ object LinuxIconManager : IconManager {
     }
 
     fun reload(theme: String = localSelectedTheme) {
-        FabricApplicationLauncherClientMod.logger.error("Start reloading from $localSelectedTheme to $theme")
+        FabricApplicationLauncherClientMod.logger.warn("Start reloading from $localSelectedTheme to $theme")
         status = IconManager.STATUS.LOADING
 
         loadedNativeImageBackedTexture.forEach {
