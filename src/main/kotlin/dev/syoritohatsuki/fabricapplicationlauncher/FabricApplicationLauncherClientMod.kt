@@ -28,19 +28,13 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
 
     val openApplicationListKeyBinding: KeyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
-            "key.open.applications",
-            InputUtil.Type.KEYSYM,
-            GLFW.GLFW_KEY_M,
-            "category.fabricapplicationlauncher"
+            "key.open.applications", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.fabricapplicationlauncher"
         )
     )
 
     val enableDebugApplicationListKeyBinding: KeyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
-            "key.open.applications.debug",
-            InputUtil.Type.KEYSYM,
-            GLFW.GLFW_KEY_N,
-            "category.fabricapplicationlauncher"
+            "key.open.applications.debug", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.fabricapplicationlauncher"
         )
     )
 
@@ -51,8 +45,7 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
             name = "linux",
             applicationManager = { LinuxApplicationManager },
             iconManager = { LinuxIconManager },
-            settingsScreen = { LinuxSettingsScreen() }
-        )
+            settingsScreen = { LinuxSettingsScreen() })
 
         ClientLifecycleEvents.CLIENT_STARTED.register {
 
@@ -80,7 +73,7 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
             if (openApplicationListKeyBinding.wasPressed()) {
                 if (ManagerRegistry.isDummy()) {
                     client.inGameHud.setOverlayMessage(
-                        Text.literal("Unsupported OS: ${ManagerRegistry.operationSystem}"), false
+                        Text.translatable("warning.unsupported.os", ManagerRegistry.operationSystem), false
                     )
                     return@EndTick
                 }

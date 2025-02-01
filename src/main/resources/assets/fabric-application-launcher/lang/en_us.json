@@ -1,0 +1,21 @@
+{
+  "key.open.applications": "Open Application Launcher",
+  "key.open.applications.debug": "Enable Debug",
+  "settingsScreen.linux": "Linux Settings",
+  "settingsScreen.dummy": "Dummy Settings",
+  "settingsScreen.linux.apply": "Apply",
+  "settingsScreen.linux.loading": "Loading...",
+  "settingsScreen.linux.done": "Done. Close",
+  "applicationScreen.title": "Applications",
+  "applicationScreen.search": "Search...",
+  "applicationScreen.settings": "Settings",
+  "applicationScreen.apps.count": "Apps count: %d",
+  "applicationScreen.apps.icons.count": "Unique icons: %d",
+  "applicationScreen.debug.name": "Name:",
+  "applicationScreen.debug.description": "Description:",
+  "applicationScreen.debug.categories": "Categories:",
+  "applicationScreen.debug.path": "Path:",
+  "applicationScreen.debug.exec": "Exec:",
+  "applicationScreen.debug.linux.icon.path": "Icon path:",
+  "warning.unsupported.os": "Unsupported OS: %s"
+}

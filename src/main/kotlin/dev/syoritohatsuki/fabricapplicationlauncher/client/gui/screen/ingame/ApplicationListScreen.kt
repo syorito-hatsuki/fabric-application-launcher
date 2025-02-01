@@ -12,7 +12,7 @@ import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 
-class ApplicationListScreen : Screen(Text.literal("Applications")) {
+class ApplicationListScreen : Screen(Text.translatable("applicationScreen.title")) {
 
     companion object {
         const val PADDING = 4
@@ -31,18 +31,16 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
 
         val row = column.add(DirectionalLayoutWidget.horizontal().spacing(8))
         searchBox = row.add(
-            TextFieldWidget(textRenderer, 190, 20, Text.literal("Search..."))
+            TextFieldWidget(textRenderer, 190, 20, Text.translatable("applicationScreen.search"))
         )
 
-        settingsButton = row.add(
-            SettingsButtonWidget(20, 20) {
-                client?.setScreen(ManagerRegistry.getSettingsScreen().apply {
-                    setParent(this@ApplicationListScreen)
-                })
-            }.apply {
-                active = !ManagerRegistry.isSettingsDummy()
-            }
-        )
+        settingsButton = row.add(SettingsButtonWidget(20, 20) {
+            client?.setScreen(ManagerRegistry.getSettingsScreen().apply {
+                setParent(this@ApplicationListScreen)
+            })
+        }.apply {
+            active = !ManagerRegistry.isSettingsDummy()
+        })
 
         applicationListWidget = column.add(
             ApplicationListWidget(
@@ -67,13 +65,16 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(context, mouseX, mouseY, delta)
         if (settingsButton?.isHovered == true) {
-            setTooltip(Text.literal("Settings (WIP)"))
+            setTooltip(Text.translatable("applicationScreen.settings"))
         }
         if (debugMode) {
             context.drawTooltip(
                 textRenderer, listOf(
-                    Text.literal("Apps count: ${ManagerRegistry.getApplicationManager().getApps().count()}"),
-                    Text.literal("Unique icons: ${ManagerRegistry.getIconManager().getUniqueIconsCount()}")
+                    Text.translatable(
+                        "applicationScreen.apps.count", ManagerRegistry.getApplicationManager().getApps().count()
+                    ), Text.translatable(
+                        "applicationScreen.apps.icons.count", ManagerRegistry.getIconManager().getUniqueIconsCount()
+                    )
                 ), -PADDING, PADDING - 1 + textRenderer.fontHeight * 2
             )
 
@@ -81,31 +82,32 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
             context.drawTooltip(
                 textRenderer, mutableListOf<Text>().apply {
                     if (app.name.isNotBlank()) add(
-                        Text.literal("Name: ").formatted(Formatting.GREEN)
-                            .append(Text.literal(app.name).formatted(Formatting.YELLOW))
+                        Text.translatable("applicationScreen.debug.name").formatted(Formatting.GREEN)
+                            .append(Text.literal(" ${app.name}").formatted(Formatting.YELLOW))
                     )
                     if (app.description.isNotBlank()) add(
-                        Text.literal("Description: ").formatted(Formatting.GREEN)
-                            .append(Text.literal(app.description).formatted(Formatting.YELLOW))
+                        Text.translatable("applicationScreen.debug.description").formatted(Formatting.GREEN)
+                            .append(Text.literal(" ${app.description}").formatted(Formatting.YELLOW))
                     )
                     if (app.categories.isNotEmpty()) add(
-                        Text.literal("Categories: ").formatted(Formatting.GREEN)
-                            .append(Text.literal(app.categories.toString()).formatted(Formatting.YELLOW))
+                        Text.translatable("applicationScreen.debug.categories").formatted(Formatting.GREEN)
+                            .append(Text.literal(" ${app.categories}").formatted(Formatting.YELLOW))
                     )
                     if (app.path.isNotBlank()) add(
-                        Text.literal("Path: ").formatted(Formatting.GREEN)
-                            .append(Text.literal(app.path).formatted(Formatting.YELLOW))
+                        Text.translatable("applicationScreen.debug.path").formatted(Formatting.GREEN)
+                            .append(Text.literal(" ${app.path}").formatted(Formatting.YELLOW))
                     )
                     if (app.executable.isNotBlank()) add(
-                        Text.literal("Exec: ").formatted(Formatting.GREEN)
-                            .append(Text.literal(app.executable).formatted(Formatting.YELLOW))
+                        Text.translatable("applicationScreen.debug.exec").formatted(Formatting.GREEN)
+                            .append(Text.literal(" ${app.executable}").formatted(Formatting.YELLOW))
                     )
                     if (app.icon.isNotBlank() && System.getProperty("os.name").lowercase().contains("linux")) {
                         val iconPath = LinuxIconManager.iconPaths[app.icon]
                         if (!iconPath.isNullOrBlank()) {
                             add(
-                                Text.literal("Icon path: ").formatted(Formatting.GREEN).append(
-                                    Text.literal(iconPath).formatted(Formatting.YELLOW)
+                                Text.translatable("applicationScreen.debug.linux.icon.path").formatted(Formatting.GREEN)
+                                    .append(
+                                        Text.literal(" $iconPath").formatted(Formatting.YELLOW)
                                 )
                             )
                         }

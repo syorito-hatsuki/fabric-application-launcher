@@ -8,7 +8,7 @@ import net.minecraft.client.gui.widget.DirectionalLayoutWidget
 import net.minecraft.text.Text
 import net.minecraft.util.Colors
 
-class LinuxSettingsScreen : AbstractSettingsScreen(Text.literal("Linux Settings")) {
+class LinuxSettingsScreen : AbstractSettingsScreen(Text.translatable("settingsScreen.linux")) {
 
     private var languageSelectionList: ThemeSelectionListWidget? = null
     private var buttonWidget: ButtonWidget? = null
@@ -20,7 +20,7 @@ class LinuxSettingsScreen : AbstractSettingsScreen(Text.literal("Linux Settings"
         this.languageSelectionList = column.add(ThemeSelectionListWidget())
 
         buttonWidget = column.add(
-            ButtonWidget.builder(Text.of("Use")) {
+            ButtonWidget.builder(Text.translatable("settingsScreen.linux.apply")) {
                 if (languageSelectionList?.selectedOrNull?.themeName.equals(
                         LinuxIconManager.getSelectedTheme(),
                         true
@@ -41,12 +41,12 @@ class LinuxSettingsScreen : AbstractSettingsScreen(Text.literal("Linux Settings"
         if (!LinuxIconManager.isLoading()) {
             buttonWidget?.active = true
             if (languageSelectionList?.selectedOrNull?.themeName.equals(LinuxIconManager.getSelectedTheme(), true)) {
-                buttonWidget?.message = Text.literal("Done. Close")
+                buttonWidget?.message = Text.translatable("settingsScreen.linux.done")
                 return
             }
-            buttonWidget?.message = Text.literal("Use")
+            buttonWidget?.message = Text.translatable("settingsScreen.linux.apply")
         } else {
-            buttonWidget?.message = Text.literal("Loading...")
+            buttonWidget?.message = Text.translatable("settingsScreen.linux.loading")
         }
     }
 
