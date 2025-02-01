@@ -38,9 +38,6 @@
       }
     ]
   },
-  "mixins": [
-    "${modId}.mixins.json"
-  ],
   "depends": {
     "fabric": "*",
     "fabricloader": "*",
