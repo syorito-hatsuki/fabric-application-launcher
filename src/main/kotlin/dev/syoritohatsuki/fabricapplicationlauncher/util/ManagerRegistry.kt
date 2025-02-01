@@ -9,33 +9,28 @@ import dev.syoritohatsuki.fabricapplicationlauncher.implementation.dummy.DummySe
 
 object ManagerRegistry {
 
-    private val registry: MutableMap<String, Triple<ApplicationManager, IconManager, AbstractSettingsScreen>> =
+    private val registry: MutableMap<String, () -> Triple<ApplicationManager, IconManager, AbstractSettingsScreen>> =
         mutableMapOf()
 
-    val operationSystem: String = System.getProperty("os.name")
+    val operationSystem: String = System.getProperty("os.name").lowercase()
 
     fun register(
         name: String,
-        applicationManager: ApplicationManager,
-        iconManager: IconManager,
-        settingsScreen: AbstractSettingsScreen
+        applicationManager: () -> ApplicationManager,
+        iconManager: () -> IconManager,
+        settingsScreen: () -> AbstractSettingsScreen
     ) {
-        registry[name] = Triple(applicationManager, iconManager, settingsScreen)
+        registry[name.lowercase()] = { Triple(applicationManager(), iconManager(), settingsScreen()) }
     }
 
-    fun getApplicationManager(): ApplicationManager = registry.entries.firstOrNull {
-        operationSystem.contains(it.key, true)
-    }?.value?.first ?: DummyApplicationManager
+    private fun getManagers(): Triple<ApplicationManager, IconManager, AbstractSettingsScreen> =
+        registry.entries.firstOrNull { operationSystem.startsWith(it.key) }?.value?.invoke()
+            ?: Triple(DummyApplicationManager, DummyIconManager, DummySettingsScreen())
 
-    fun getIconManager(): IconManager = registry.entries.firstOrNull {
-        operationSystem.contains(it.key, true)
-    }?.value?.second ?: DummyIconManager
-
-    fun getSettingsScreen(): AbstractSettingsScreen = registry.entries.firstOrNull {
-        operationSystem.contains(it.key, true)
-    }?.value?.third ?: DummySettingsScreen()
+    fun getApplicationManager(): ApplicationManager = getManagers().first
+    fun getIconManager(): IconManager = getManagers().second
+    fun getSettingsScreen(): AbstractSettingsScreen = getManagers().third
 
     fun isSettingsDummy() = getSettingsScreen() is DummySettingsScreen
-
     fun isDummy(): Boolean = getApplicationManager() is DummyApplicationManager || getIconManager() is DummyIconManager
 }

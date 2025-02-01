@@ -100,14 +100,15 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
                         Text.literal("Exec: ").formatted(Formatting.GREEN)
                             .append(Text.literal(app.executable).formatted(Formatting.YELLOW))
                     )
-                    try {
-                        if (app.icon.isNotBlank() && !LinuxIconManager.iconPaths[app.icon].isNullOrBlank()) add(
-                            Text.literal("Icon path: ").formatted(Formatting.GREEN).append(
-                                Text.literal(LinuxIconManager.iconPaths[app.icon] ?: "Impossible path!")
-                                    .formatted(Formatting.YELLOW)
+                    if (app.icon.isNotBlank() && System.getProperty("os.name").lowercase().contains("linux")) {
+                        val iconPath = LinuxIconManager.iconPaths[app.icon]
+                        if (!iconPath.isNullOrBlank()) {
+                            add(
+                                Text.literal("Icon path: ").formatted(Formatting.GREEN).append(
+                                    Text.literal(iconPath).formatted(Formatting.YELLOW)
+                                )
                             )
-                        )
-                    } catch (ignore: Exception) {
+                        }
                     }
                 }, -PADDING, textRenderer.fontHeight * 6
             )
