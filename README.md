@@ -11,20 +11,17 @@
 
 <br />
 <div align="center">
-  <a href="https://github.com/syorito-hatsuki/<repo>">
-    <img src="https://github.com/syorito-hatsuki/<repo>/blob/1.20/src/main/resources/assets/<repo>/icon.png" alt="Logo" width="80" height="80">
-  </a>
 
-<h3 align="center">Mod Name</h3>
+<h3 align="center">Fabric Application Launcher</h3>
 
   <p align="center">
-    Mod description
+    Application launcher in Minecraft (Linux Only)
     <br />
     <a href="https://discord.gg/pbwnMwnUD6">Support</a>
     ·
-    <a href="https://github.com/syorito-hatsuki/<repo>/issues">Report Bug</a>
+    <a href="https://github.com/syorito-hatsuki/fabric-application-launcher/issues">Report Bug</a>
     ·
-    <a href="https://github.com/syorito-hatsuki/<repo>/issues">Request Feature</a>
+    <a href="https://github.com/syorito-hatsuki/fabric-application-launcher/issues">Request Feature</a>
   </p>
 </div>
 
@@ -48,7 +45,9 @@
 
 ![In-Game ScreenShot][screenshot]
 
-Somebody once told me the world is gonna roll me
+That mod adds an
+alternative [linux application launcher](https://wiki.archlinux.org/title/Category:Application_launchers)
+inside of Minecraft that allows you to search and run applications from game
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -63,19 +62,29 @@ Somebody once told me the world is gonna roll me
 
 ## Usage
 
+Default keybindings are next
+
+| Key | Action                    |
+|-----|---------------------------|
+| M   | Open Application Launcher |
+| N   | Enable Debug Mode         |
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Roadmap
 
-See the [open issues](https://github.com/syorito-hatsuki/<repo>/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/syorito-hatsuki/fabric-application-launcher/issues) for a full list of proposed
+features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any
+contributions you make are **greatly appreciated**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also
+simply open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
 
 1. Fork the Project
@@ -92,33 +101,44 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-[contributors-shield]: https://img.shields.io/github/contributors/syorito-hatsuki/<repo>.svg?style=for-the-badge
-[contributors-url]: https://github.com/syorito-hatsuki/<repo>/graphs/contributors
+[contributors-shield]: https://img.shields.io/github/contributors/syorito-hatsuki/fabric-application-launcher.svg?style=for-the-badge
 
-[forks-shield]: https://img.shields.io/github/forks/syorito-hatsuki/<repo>.svg?style=for-the-badge
-[forks-url]: https://github.com/syorito-hatsuki/<repo>/network/members
+[contributors-url]: https://github.com/syorito-hatsuki/fabric-application-launcher/graphs/contributors
 
-[stars-shield]: https://img.shields.io/github/stars/syorito-hatsuki/<repo>.svg?style=for-the-badge
-[stars-url]: https://github.com/syorito-hatsuki/<repo>/stargazers
+[forks-shield]: https://img.shields.io/github/forks/syorito-hatsuki/fabric-application-launcher.svg?style=for-the-badge
 
-[issues-shield]: https://img.shields.io/github/issues/syorito-hatsuki/<repo>.svg?style=for-the-badge
-[issues-url]: https://github.com/syorito-hatsuki/<repo>/issues
+[forks-url]: https://github.com/syorito-hatsuki/fabric-application-launcher/network/members
 
-[license-shield]: https://img.shields.io/github/license/syorito-hatsuki/<repo>.svg?style=for-the-badge
-[license-url]: https://github.com/syorito-hatsuki/<repo>/blob/master/LICENSE.txt
+[stars-shield]: https://img.shields.io/github/stars/syorito-hatsuki/fabric-application-launcher.svg?style=for-the-badge
+
+[stars-url]: https://github.com/syorito-hatsuki/fabric-application-launcher/stargazers
+
+[issues-shield]: https://img.shields.io/github/issues/syorito-hatsuki/fabric-application-launcher.svg?style=for-the-badge
+
+[issues-url]: https://github.com/syorito-hatsuki/fabric-application-launcher/issues
+
+[license-shield]: https://img.shields.io/github/license/syorito-hatsuki/fabric-application-launcher.svg?style=for-the-badge
+
+[license-url]: https://github.com/syorito-hatsuki/fabric-application-launcher/blob/master/LICENSE.txt
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+
 [linkedin-url]: https://linkedin.com/in/kit-lehto
 
 [discord-shield]: https://img.shields.io/discord/1032138561618726952?logo=discord&logoColor=white&style=for-the-badge&label=Discord
+
 [discord-url]: https://discord.gg/pbwnMwnUD6
 
-[modrinth-shield]: https://img.shields.io/modrinth/v/<repo>?label=Modrinth&style=for-the-badge
-[modrinth-url]: https://modrinth.com/mod/<repo>
+[modrinth-shield]: https://img.shields.io/modrinth/v/fabric-application-launcher?label=Modrinth&style=for-the-badge
 
-[screenshot]: <image-url>
+[modrinth-url]: https://modrinth.com/mod/fabric-application-launcher
+
+[screenshot]: ./assets/banner.png
 
 [fabric]: https://img.shields.io/badge/fabric%20api-DBD0B4?style=for-the-badge
+
 [fabric-language-kotlin]: https://img.shields.io/badge/fabric%20language%20kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white
+
 [modmenu-badges-lib]: https://img.shields.io/badge/modmenu%20badges%20lib-434956?style=for-the-badge
+
 [ducky-updater-lib]: https://img.shields.io/badge/ducky%20updater%20lib-1bd96a?style=for-the-badge
