@@ -185,6 +185,9 @@ object LinuxIconManager : IconManager {
     }
 
     private fun getIconPath(icon: String): Path? {
+
+        if (FORMATS.entries.any { icon.endsWith(it.name, true) }) return Path.of(icon)
+
         themePaths.forEach { themePath ->
             ICON_DIRECTORIES.forEach dir@{ basePath ->
                 return searchIcon(icon, basePath.resolve("icons").resolve(themePath)) ?: return@dir
