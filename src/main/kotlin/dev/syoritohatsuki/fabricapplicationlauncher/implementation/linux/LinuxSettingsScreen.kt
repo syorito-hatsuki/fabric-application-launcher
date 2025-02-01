@@ -1,6 +1,5 @@
 package dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux
 
-import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
 import dev.syoritohatsuki.fabricapplicationlauncher.implementation.AbstractSettingsScreen
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.widget.AlwaysSelectedEntryListWidget
@@ -60,9 +59,6 @@ class LinuxSettingsScreen : AbstractSettingsScreen(Text.literal("Linux Settings"
     ) {
 
         init {
-            FabricApplicationLauncherClientMod.logger.warn("KRA INIT")
-            FabricApplicationLauncherClientMod.logger.warn(LinuxIconManager.getSelectedTheme())
-
             LinuxIconManager.THEMES.toSortedMap().forEach {
                 addEntry(ThemeEntry(it.key))
             }

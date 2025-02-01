@@ -54,6 +54,7 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
             logger.info("<-----[ Manager Registry Loaded ]----->")
             logger.info("Application: " + ManagerRegistry.getApplicationManager().javaClass.simpleName)
             logger.info("Icon: " + ManagerRegistry.getIconManager().javaClass.simpleName)
+            if (ManagerRegistry.getIconManager() is LinuxIconManager) logger.info("Theme: " + LinuxIconManager.getSelectedTheme())
             logger.info("<------------------------------------->")
 
             scope.launch {
