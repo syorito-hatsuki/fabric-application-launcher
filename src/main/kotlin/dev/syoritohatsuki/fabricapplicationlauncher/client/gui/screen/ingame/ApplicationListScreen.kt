@@ -1,13 +1,13 @@
 package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 
 import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxApplicationManager
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.client.gui.widget.SettingsButtonWidget
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux.LinuxApplicationManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux.LinuxIconManager
 import dev.syoritohatsuki.fabricapplicationlauncher.util.ManagerRegistry
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.DirectionalLayoutWidget
-import net.minecraft.client.gui.widget.LockButtonWidget
 import net.minecraft.client.gui.widget.SimplePositioningWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.Text
@@ -23,7 +23,7 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
     private var positioningWidget: SimplePositioningWidget = SimplePositioningWidget(0, 0, this.width, this.height)
 
     var searchBox: TextFieldWidget? = null
-    private var settingsButton: LockButtonWidget? = null
+    private var settingsButton: SettingsButtonWidget? = null
     private lateinit var applicationListWidget: ApplicationListWidget
 
     override fun init() {
@@ -31,15 +31,17 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
         column.mainPositioner.alignHorizontalCenter()
 
         val row = column.add(DirectionalLayoutWidget.horizontal().spacing(8))
-        searchBox = row?.add(
+        searchBox = row.add(
             TextFieldWidget(textRenderer, 190, 20, Text.literal("Search..."))
         )
 
-        settingsButton = row?.add(
-            LockButtonWidget(20, 20) {
-                // TODO Open settings
+        settingsButton = row.add(
+            SettingsButtonWidget(20, 20) {
+                client?.setScreen(ManagerRegistry.getSettingsScreen().apply {
+                    setParent(this@ApplicationListScreen)
+                })
             }.apply {
-                isLocked = true
+                active = !ManagerRegistry.isSettingsDummy()
             }
         )
 

@@ -1,7 +1,7 @@
-package dev.syoritohatsuki.fabricapplicationlauncher.manager.dummy
+package dev.syoritohatsuki.fabricapplicationlauncher.implementation.dummy
 
 import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.IconManager
 import net.minecraft.util.Identifier
 
 object DummyIconManager : IconManager {

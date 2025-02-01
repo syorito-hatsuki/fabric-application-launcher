@@ -12,7 +12,6 @@
     "sources": "https://github.com/syorito-hatsuki/${modId}"
   },
   "license": "MIT Licence",
-  "icon": "assets/${modId}/icon.png",
   "accessWidener": "${modId}.accesswidener",
   "environment": "*",
   "entrypoints": {

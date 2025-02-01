@@ -1,8 +1,8 @@
 package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 
 import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.ApplicationManager
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.ApplicationManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.IconManager
 import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext

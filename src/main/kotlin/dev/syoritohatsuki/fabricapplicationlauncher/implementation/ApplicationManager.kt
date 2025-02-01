@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.fabricapplicationlauncher.manager
+package dev.syoritohatsuki.fabricapplicationlauncher.implementation
 
 import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
 

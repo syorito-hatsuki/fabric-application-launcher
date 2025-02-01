@@ -1,8 +1,8 @@
-package dev.syoritohatsuki.fabricapplicationlauncher.manager.linux
+package dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux
 
 import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
 import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.ApplicationManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.ApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.util.HOME
 import dev.syoritohatsuki.fabricapplicationlauncher.util.XDG_DATA_DIRS
 import kotlin.io.path.Path

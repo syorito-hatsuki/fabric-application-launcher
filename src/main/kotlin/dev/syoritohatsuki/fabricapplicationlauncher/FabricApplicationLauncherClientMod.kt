@@ -2,12 +2,12 @@ package dev.syoritohatsuki.fabricapplicationlauncher
 
 import com.mojang.logging.LogUtils
 import dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame.ApplicationListScreen
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxApplicationManager
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.linux.LinuxIconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.IconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux.LinuxApplicationManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux.LinuxIconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux.LinuxSettingsScreen
 import dev.syoritohatsuki.fabricapplicationlauncher.util.ManagerRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
@@ -20,6 +20,8 @@ import org.lwjgl.glfw.GLFW
 import org.slf4j.Logger
 
 object FabricApplicationLauncherClientMod : ClientModInitializer {
+
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     const val MOD_ID = "fabric-application-launcher"
     val logger: Logger = LogUtils.getLogger()
@@ -45,7 +47,7 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
     override fun onInitializeClient() {
         logger.info("${javaClass.simpleName} initialized with mod-id $MOD_ID")
 
-        ManagerRegistry.register("linux", LinuxApplicationManager, LinuxIconManager)
+        ManagerRegistry.register("linux", LinuxApplicationManager, LinuxIconManager, LinuxSettingsScreen())
 
         ClientLifecycleEvents.CLIENT_STARTED.register {
 
@@ -54,12 +56,16 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
             logger.info("Icon: " + ManagerRegistry.getIconManager().javaClass.simpleName)
             logger.info("<------------------------------------->")
 
-            CoroutineScope(Dispatchers.IO).launch {
+            scope.launch {
                 ManagerRegistry.getApplicationManager().fetchApps()
-                ManagerRegistry.getApplicationManager().getApps().forEach {
-                    CoroutineScope(Dispatchers.IO).launch {
+                ManagerRegistry.getApplicationManager().getApps().map {
+                    async {
                         ManagerRegistry.getIconManager().preload(it.icon)
                     }
+                }.awaitAll()
+
+                if (ManagerRegistry.getIconManager() is LinuxIconManager) {
+                    (ManagerRegistry.getIconManager() as LinuxIconManager).status = IconManager.STATUS.LOADED
                 }
             }
         }

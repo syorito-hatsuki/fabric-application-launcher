@@ -1,10 +1,12 @@
-package dev.syoritohatsuki.fabricapplicationlauncher.manager.linux
+package dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux
 
 import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
-import dev.syoritohatsuki.fabricapplicationlauncher.manager.IconManager
+import dev.syoritohatsuki.fabricapplicationlauncher.implementation.IconManager
 import dev.syoritohatsuki.fabricapplicationlauncher.util.HOME
+import dev.syoritohatsuki.fabricapplicationlauncher.util.ManagerRegistry
 import dev.syoritohatsuki.fabricapplicationlauncher.util.XDG_DATA_DIRS
 import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
+import kotlinx.coroutines.*
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.client.texture.NativeImageBackedTexture
@@ -29,6 +31,13 @@ object LinuxIconManager : IconManager {
     private val loadedNativeImageBackedTexture: MutableMap<String, NativeImageBackedTexture> = mutableMapOf()
     val iconPaths: MutableMap<String, String> = mutableMapOf()
 
+    private var localSelectedTheme = ""
+    private val themePaths = mutableListOf(localSelectedTheme)
+
+    private val scope = CoroutineScope(Dispatchers.IO)
+
+    var status = IconManager.STATUS.LOADING
+
     enum class FORMATS {
         SVG, SVGZ, PNG
     }
@@ -37,18 +46,24 @@ object LinuxIconManager : IconManager {
         *XDG_DATA_DIRS.split(":").map(Paths::get).toTypedArray(), Paths.get(HOME, ".local", "share")
     )
 
-    val THEMES: Map<String, List<String>> = mutableMapOf<String, List<String>>().apply {
-        ICON_DIRECTORIES.map { it.resolve("icons") }.filter { Files.exists(it) && Files.isDirectory(it) }.flatMap {
-            it.filter(Files::isDirectory)
-        }.forEach { themePath ->
-            val indexFile = themePath.resolve("index.theme")
-            if (Files.exists(indexFile)) {
-                val properties = loadPropertiesFromIndex(indexFile)
-                val themeName = properties["Name"] ?: themePath.fileName.toString()
-                val inherits = properties["Inherits"]?.split(",")?.map { it.trim() } ?: emptyList()
-                this[themeName] = inherits
-            }
-        }
+    val THEMES: Map<String, List<String>> by lazy {
+        ICON_DIRECTORIES.map { it.resolve("icons") }.filter { Files.exists(it) && Files.isDirectory(it) }
+            .flatMap { path -> Files.list(path).use { it.filter(Files::isDirectory).toList() } }
+            .mapNotNull { themePath ->
+                val indexFile = themePath.resolve("index.theme")
+                if (!Files.exists(indexFile)) return@mapNotNull null
+
+                val properties = Files.readAllLines(indexFile).dropWhile { it.trim() != "[Icon Theme]" }.drop(1)
+                    .mapNotNull { string ->
+                        string.trim().takeIf { "=" in it }?.split("=", limit = 2)
+                            ?.let { (k, v) -> k.trim() to v.trim() }
+                    }.toMap()
+
+                val name = properties["Name"] ?: return@mapNotNull null
+                val inherits = properties["Inherits"]?.split(",")?.map(String::trim) ?: emptyList()
+
+                name to inherits
+            }.toMap()
     }
 
     private val RESOLUTIONS = execute(
@@ -59,20 +74,6 @@ object LinuxIconManager : IconManager {
             addFirst("scalable")
             add("")
         }
-
-    private fun loadPropertiesFromIndex(indexFile: Path): Map<String, String> = mutableMapOf<String, String>().apply {
-        var inGeneralSection = false
-        Files.readAllLines(indexFile).forEach { line ->
-            val trimmed = line.trim()
-            when {
-                Regex("^\\[.*]$").matches(trimmed) -> inGeneralSection = trimmed == "[Icon Theme]"
-                inGeneralSection && "=" in trimmed -> {
-                    val (key, value) = trimmed.split("=", limit = 2).map { it.trim() }
-                    this[key] = value
-                }
-            }
-        }
-    }
 
     private fun createEmptyPng(): InputStream = ByteArrayInputStream(ByteArrayOutputStream().apply {
         ImageIO.write(BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), "png", this)
@@ -152,22 +153,14 @@ object LinuxIconManager : IconManager {
                     )
                     iconPaths[icon] = path.toString()
                 } catch (e: Exception) {
+                    loadedNativeImageBackedTexture[icon] = NativeImageBackedTexture(NativeImage.read(createEmptyPng()))
                     FabricApplicationLauncherClientMod.logger.error(e.message + ": $path")
                 }
             }
         }
     }
 
-    private fun getIconPath(icon: String, theme: String = "breeze"): Path? {
-        val themePaths = mutableListOf(theme)
-
-        if (theme.isNotEmpty()) {
-            themePaths.addAll(THEMES[theme] ?: emptyList())
-        }
-
-        themePaths.add("hicolor")
-        themePaths.add("")
-
+    private fun getIconPath(icon: String): Path? {
         themePaths.forEach { themePath ->
             ICON_DIRECTORIES.forEach dir@{ basePath ->
                 return searchIcon(icon, basePath.resolve("icons").resolve(themePath)) ?: return@dir
@@ -205,6 +198,45 @@ object LinuxIconManager : IconManager {
 
         return bytesRead == 2 && magicNumber[0] == 0x1F.toByte() && magicNumber[1] == 0x8B.toByte()
     }
+
+    fun reload(theme: String) {
+        FabricApplicationLauncherClientMod.logger.error("Start reloading from $localSelectedTheme to $theme")
+        status = IconManager.STATUS.LOADING
+
+        loadedNativeImageBackedTexture.forEach {
+            MinecraftClient.getInstance().textureManager.destroyTexture(
+                Identifier.of(FabricApplicationLauncherClientMod.MOD_ID, it.key.lowercase())
+            )
+        }
+
+        loadedNativeImageBackedTexture.clear()
+        iconPaths.clear()
+        loadedIcons.clear()
+        themePaths.clear()
+
+        localSelectedTheme = theme
+        themePaths.add(localSelectedTheme)
+
+        if (localSelectedTheme.isNotEmpty()) {
+            themePaths.addAll(THEMES[localSelectedTheme] ?: emptyList())
+        }
+
+        themePaths.add("hicolor")
+        themePaths.add("")
+
+        scope.launch {
+            ManagerRegistry.getApplicationManager().getApps().map {
+                async(Dispatchers.IO) {
+                    ManagerRegistry.getIconManager().preload(it.icon)
+                }
+            }.awaitAll()
+            status = IconManager.STATUS.LOADED
+        }
+    }
+
+    fun isLoading() = status == IconManager.STATUS.LOADING
+
+    fun getSelectedTheme() = localSelectedTheme
 
     override fun getIconIdentifier(icon: String): Identifier = loadedIcons[icon] ?: loadIcon(icon)
 
