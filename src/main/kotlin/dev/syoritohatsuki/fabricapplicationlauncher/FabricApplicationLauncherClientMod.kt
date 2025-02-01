@@ -47,41 +47,46 @@ object FabricApplicationLauncherClientMod : ClientModInitializer {
     override fun onInitializeClient() {
         logger.info("${javaClass.simpleName} initialized with mod-id $MOD_ID")
 
-        ManagerRegistry.register("linux", LinuxApplicationManager, LinuxIconManager, LinuxSettingsScreen())
+        try {
+            ManagerRegistry.register("linux", LinuxApplicationManager, LinuxIconManager, LinuxSettingsScreen())
 
-        ClientLifecycleEvents.CLIENT_STARTED.register {
+            ClientLifecycleEvents.CLIENT_STARTED.register {
 
-            logger.info("<-----[ Manager Registry Loaded ]----->")
-            logger.info("Application: " + ManagerRegistry.getApplicationManager().javaClass.simpleName)
-            logger.info("Icon: " + ManagerRegistry.getIconManager().javaClass.simpleName)
-            if (ManagerRegistry.getIconManager() is LinuxIconManager) logger.info("Theme: " + LinuxIconManager.getSelectedTheme())
-            logger.info("<------------------------------------->")
+                logger.info("<-----[ Manager Registry Loaded ]----->")
+                logger.info("Application: " + ManagerRegistry.getApplicationManager().javaClass.simpleName)
+                logger.info("Icon: " + ManagerRegistry.getIconManager().javaClass.simpleName)
+                if (ManagerRegistry.getIconManager() is LinuxIconManager) logger.info("Theme: " + LinuxIconManager.getSelectedTheme())
+                logger.info("<------------------------------------->")
 
-            scope.launch {
-                ManagerRegistry.getApplicationManager().fetchApps()
-                ManagerRegistry.getApplicationManager().getApps().map {
-                    async {
-                        ManagerRegistry.getIconManager().preload(it.icon)
+                scope.launch {
+                    ManagerRegistry.getApplicationManager().fetchApps()
+                    ManagerRegistry.getApplicationManager().getApps().map {
+                        async {
+                            ManagerRegistry.getIconManager().preload(it.icon)
+                        }
+                    }.awaitAll()
+
+                    if (ManagerRegistry.getIconManager() is LinuxIconManager) {
+                        (ManagerRegistry.getIconManager() as LinuxIconManager).status = IconManager.STATUS.LOADED
                     }
-                }.awaitAll()
-
-                if (ManagerRegistry.getIconManager() is LinuxIconManager) {
-                    (ManagerRegistry.getIconManager() as LinuxIconManager).status = IconManager.STATUS.LOADED
                 }
             }
+
+            ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
+                if (openApplicationListKeyBinding.wasPressed()) {
+                    if (ManagerRegistry.isDummy()) {
+                        client.inGameHud.setOverlayMessage(
+                            Text.literal("Unsupported OS: ${ManagerRegistry.operationSystem}"), false
+                        )
+                        return@EndTick
+                    }
+
+                    client.setScreen(ApplicationListScreen())
+                }
+            })
+        } catch (e: Exception) {
+            logger.warn("Temporal try-catch for incorrect OS")
         }
 
-        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
-            if (openApplicationListKeyBinding.wasPressed()) {
-                if (ManagerRegistry.isDummy()) {
-                    client.inGameHud.setOverlayMessage(
-                        Text.literal("Unsupported OS: ${ManagerRegistry.operationSystem}"), false
-                    )
-                    return@EndTick
-                }
-
-                client.setScreen(ApplicationListScreen())
-            }
-        })
     }
 }

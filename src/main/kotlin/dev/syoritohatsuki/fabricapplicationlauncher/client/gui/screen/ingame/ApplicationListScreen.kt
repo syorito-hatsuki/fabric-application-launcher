@@ -2,7 +2,6 @@ package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 
 import dev.syoritohatsuki.fabricapplicationlauncher.FabricApplicationLauncherClientMod
 import dev.syoritohatsuki.fabricapplicationlauncher.client.gui.widget.SettingsButtonWidget
-import dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux.LinuxApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.implementation.linux.LinuxIconManager
 import dev.syoritohatsuki.fabricapplicationlauncher.util.ManagerRegistry
 import net.minecraft.client.gui.DrawContext
@@ -73,8 +72,8 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
         if (debugMode) {
             context.drawTooltip(
                 textRenderer, listOf(
-                    Text.literal("Apps count: ${LinuxApplicationManager.getApps().count()}"),
-                    Text.literal("Unique icons: ${LinuxIconManager.getUniqueIconsCount()}")
+                    Text.literal("Apps count: ${ManagerRegistry.getApplicationManager().getApps().count()}"),
+                    Text.literal("Unique icons: ${ManagerRegistry.getIconManager().getUniqueIconsCount()}")
                 ), -PADDING, PADDING - 1 + textRenderer.fontHeight * 2
             )
 
@@ -101,12 +100,15 @@ class ApplicationListScreen : Screen(Text.literal("Applications")) {
                         Text.literal("Exec: ").formatted(Formatting.GREEN)
                             .append(Text.literal(app.executable).formatted(Formatting.YELLOW))
                     )
-                    if (app.icon.isNotBlank() && !LinuxIconManager.iconPaths[app.icon].isNullOrBlank()) add(
-                        Text.literal("Icon path: ").formatted(Formatting.GREEN).append(
-                            Text.literal(LinuxIconManager.iconPaths[app.icon] ?: "Impossible path!")
-                                .formatted(Formatting.YELLOW)
+                    try {
+                        if (app.icon.isNotBlank() && !LinuxIconManager.iconPaths[app.icon].isNullOrBlank()) add(
+                            Text.literal("Icon path: ").formatted(Formatting.GREEN).append(
+                                Text.literal(LinuxIconManager.iconPaths[app.icon] ?: "Impossible path!")
+                                    .formatted(Formatting.YELLOW)
+                            )
                         )
-                    )
+                    } catch (ignore: Exception) {
+                    }
                 }, -PADDING, textRenderer.fontHeight * 6
             )
         }
