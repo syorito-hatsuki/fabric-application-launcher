@@ -5,6 +5,7 @@ import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
 import dev.syoritohatsuki.fabricapplicationlauncher.implementation.ApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.util.HOME
 import dev.syoritohatsuki.fabricapplicationlauncher.util.XDG_DATA_DIRS
+import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
 import kotlin.io.path.Path
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readLines
@@ -60,4 +61,8 @@ object LinuxApplicationManager : ApplicationManager {
     override fun getApps(): List<Application> = apps.values.toList()
 
     override fun getAppsCount(): Int = apps.count()
+
+    override fun executeApplication(application: Application) {
+        execute(application.executable)
+    }
 }

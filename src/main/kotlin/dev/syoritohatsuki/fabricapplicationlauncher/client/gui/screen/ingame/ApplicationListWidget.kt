@@ -3,7 +3,6 @@ package dev.syoritohatsuki.fabricapplicationlauncher.client.gui.screen.ingame
 import dev.syoritohatsuki.fabricapplicationlauncher.dto.Application
 import dev.syoritohatsuki.fabricapplicationlauncher.implementation.ApplicationManager
 import dev.syoritohatsuki.fabricapplicationlauncher.implementation.IconManager
-import dev.syoritohatsuki.fabricapplicationlauncher.util.execute
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
@@ -141,7 +140,7 @@ class ApplicationListWidget(
             this.onPressed()
 
             if (Util.getMeasuringTimeMs() - this.clickTime < 250L) {
-                execute(application.executable)
+                applicationManager.executeApplication(application)
             }
 
             this.clickTime = Util.getMeasuringTimeMs()

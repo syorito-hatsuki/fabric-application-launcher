@@ -6,4 +6,5 @@ interface ApplicationManager {
     fun getAppsCount(): Int
     fun fetchApps()
     fun getApps(): List<Application>
+    fun executeApplication(executable: Application)
 }

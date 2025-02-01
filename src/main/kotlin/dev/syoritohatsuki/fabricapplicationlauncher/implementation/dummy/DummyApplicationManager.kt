@@ -10,4 +10,7 @@ object DummyApplicationManager : ApplicationManager {
     }
 
     override fun getApps(): List<Application> = listOf()
+
+    override fun executeApplication(executable: Application) {
+    }
 }
